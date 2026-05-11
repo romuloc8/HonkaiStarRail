@@ -260,7 +260,22 @@ class MainMissionExtractor(BaseExtractor):
             if abs_path.exists():
                 _add(abs_path)
 
-        # Deterministic ordering: Act/ → Talk/ → Mission_*.json
+        # --- Story/Discussion and Story/Mission directories (post-2.0 演出) ---
+        # DS*.json files: discussion performances with TalkSentenceIDs for
+        # branching dialogue choices and NPC lines.
+        # Story*.json files: CG performances; some have PlayOptionTalk nodes.
+        # Note: the actual CG monologue is in *.playable Unity Timeline assets
+        # which are binary and not present in this data dump.
+        for story_subdir in (
+            self.data_root / "Story" / "Discussion" / "Mission" / mission_str,
+            self.data_root / "Story" / "Mission" / mission_str,
+        ):
+            if story_subdir.exists():
+                for f in sorted(story_subdir.iterdir()):
+                    if f.suffix == ".json":
+                        _add(f)
+
+        # Deterministic ordering: Act/ → Talk/ → Mission_*.json → DS*.json → Story*.json
         def _sort_key(p: Path) -> tuple:
             parent = p.parent.name
             name = p.name
@@ -270,7 +285,11 @@ class MainMissionExtractor(BaseExtractor):
                 return (1, name)
             if name.startswith("Mission_"):
                 return (2, name)
-            return (3, name)
+            if name.startswith("DS"):
+                return (3, name)
+            if name.startswith("Story"):
+                return (4, name)
+            return (5, name)
 
         paths.sort(key=_sort_key)
         return paths
