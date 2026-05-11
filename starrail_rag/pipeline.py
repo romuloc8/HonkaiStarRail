@@ -28,6 +28,7 @@ from starrail_rag.core.cleaner import CleaningPipeline
 from starrail_rag.core.models import Document
 from starrail_rag.core.textmap import TextMapResolver
 from starrail_rag.extractors.main_mission import MainMissionExtractor
+from starrail_rag.extractors.wiki_mission import WikiMissionExtractor, CHAPTER_NAMES
 from starrail_rag.loaders.talk_sentence import TalkSentenceIndex
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 # Add new extractors here as they are implemented
 _EXTRACTOR_REGISTRY = {
     "main_mission": MainMissionExtractor,
+    "wiki_mission": WikiMissionExtractor,
 }
 
 
@@ -48,6 +50,8 @@ class PipelineConfig:
     mission_types: list[str] = field(default_factory=lambda: ["Main"])
     mission_ids: list[int] | None = None   # None = all matching types
     cleaning_profile: list[str] | None = None   # None = DEFAULT_PROFILE
+    wiki_chapters: list[str] | None = None   # None = all chapters
+    wiki_request_delay: float = 1.0
 
 
 @dataclass
@@ -115,6 +119,11 @@ def run_pipeline(cfg: PipelineConfig) -> list[PipelineResult]:
                 "talk_index": talk_index,
                 "filter_types": cfg.mission_types,
                 "mission_ids": cfg.mission_ids,
+            }
+        elif extractor_name == "wiki_mission":
+            kwargs = {
+                "chapters": cfg.wiki_chapters,
+                "request_delay": cfg.wiki_request_delay,
             }
 
         extractor = cls(data_root, resolver, **kwargs)

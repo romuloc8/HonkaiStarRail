@@ -81,6 +81,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Restrict to specific MainMissionIDs (default: all)",
     )
     p.add_argument(
+        "--wiki-chapters",
+        nargs="+",
+        default=None,
+        metavar="CHAPTER",
+        help="Wiki extractor: limit to specific chapter names (default: all)",
+    )
+    p.add_argument(
+        "--wiki-delay",
+        type=float,
+        default=1.0,
+        metavar="SECONDS",
+        help="Wiki extractor: delay between requests in seconds (default: 1.0)",
+    )
+    p.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable DEBUG-level logging",
@@ -100,6 +114,8 @@ def main(argv: list[str] | None = None) -> int:
         extractors=args.extractors,
         mission_types=args.mission_types,
         mission_ids=args.mission_ids,
+        wiki_chapters=args.wiki_chapters,
+        wiki_request_delay=args.wiki_delay,
     )
 
     results = run_pipeline(cfg)
