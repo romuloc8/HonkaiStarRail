@@ -81,6 +81,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Restrict to specific MainMissionIDs (default: all)",
     )
     p.add_argument(
+        "--wiki-categories",
+        nargs="+",
+        default=None,
+        metavar="CATEGORY",
+        dest="wiki_categories",
+        help="wiki_category extractor: category names to scrape (default: all 4)",
+    )
+    p.add_argument(
         "--wiki-chapters",
         nargs="+",
         default=None,
@@ -115,6 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         mission_types=args.mission_types,
         mission_ids=args.mission_ids,
         wiki_chapters=args.wiki_chapters,
+        wiki_categories=args.wiki_categories,
         wiki_request_delay=args.wiki_delay,
     )
 

@@ -13,6 +13,7 @@ from starrail_rag.extractors.light_cone import LightConeExtractor
 from starrail_rag.extractors.relic_set import RelicSetExtractor
 from starrail_rag.extractors.book import BookExtractor
 from starrail_rag.extractors.item_lore import ItemLoreExtractor
+from starrail_rag.extractors.wiki_category import WikiCategoryExtractor
 
 __all__ = [
     "BaseExtractor",
@@ -24,4 +25,5 @@ __all__ = [
     "RelicSetExtractor",
     "BookExtractor",
     "ItemLoreExtractor",
+    "WikiCategoryExtractor",
 ]

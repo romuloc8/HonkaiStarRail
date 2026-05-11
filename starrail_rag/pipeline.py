@@ -34,6 +34,7 @@ from starrail_rag.extractors.light_cone import LightConeExtractor
 from starrail_rag.extractors.relic_set import RelicSetExtractor
 from starrail_rag.extractors.book import BookExtractor
 from starrail_rag.extractors.item_lore import ItemLoreExtractor
+from starrail_rag.extractors.wiki_category import WikiCategoryExtractor
 from starrail_rag.loaders.talk_sentence import TalkSentenceIndex
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ _EXTRACTOR_REGISTRY = {
     "relic_set": RelicSetExtractor,
     "book": BookExtractor,
     "item_lore": ItemLoreExtractor,
+    "wiki_category": WikiCategoryExtractor,
 }
 
 
@@ -59,7 +61,8 @@ class PipelineConfig:
     mission_types: list[str] = field(default_factory=lambda: ["Main"])
     mission_ids: list[int] | None = None   # None = all matching types
     cleaning_profile: list[str] | None = None   # None = DEFAULT_PROFILE
-    wiki_chapters: list[str] | None = None   # None = all chapters
+    wiki_chapters: list[str] | None = None    # None = all chapters
+    wiki_categories: list[str] | None = None  # None = all 4 categories
     wiki_request_delay: float = 1.0
 
 
@@ -132,6 +135,11 @@ def run_pipeline(cfg: PipelineConfig) -> list[PipelineResult]:
         elif extractor_name == "wiki_mission":
             kwargs = {
                 "chapters": cfg.wiki_chapters,
+                "request_delay": cfg.wiki_request_delay,
+            }
+        elif extractor_name == "wiki_category":
+            kwargs = {
+                "categories": cfg.wiki_categories or ["同行任务", "开拓续闻", "冒险任务", "活动任务"],
                 "request_delay": cfg.wiki_request_delay,
             }
 

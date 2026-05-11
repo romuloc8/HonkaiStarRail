@@ -71,12 +71,16 @@ _BULLET_DIALOGUE_RE = re.compile(
     r'^\*(?P<speaker>[^：\n*{]{1,30})：(?P<text>.+)$'
 )
 
-# {{剧情选项}} 模板的完整块（可能多行），提取所有 剧情N= 的对话
-_PLOT_OPTION_RE = re.compile(
-    r'\{\{剧情选项(.*?)\}\}',
-    re.DOTALL,
-)
-# 在剧情选项内提取 *Speaker：Text
+# {{剧情选项}} 模板的完整块（可能多行）
+_PLOT_OPTION_RE = re.compile(r'\{\{剧情选项(.*?)\}\}', re.DOTALL)
+
+# 提取选项文本：选项N=<text> 或 选项N =<text>
+_OPTION_TEXT_RE = re.compile(r'选项\d+\s*=\s*([^|}\n]+)')
+
+# 提取某一支剧情内的对话行：剧情N=...*Speaker：Text...
+_OPTION_BRANCH_RE = re.compile(r'剧情\d+\s*=((?:[^|]|\|(?!选项|\|))*)', re.DOTALL)
+
+# 在一段剧情文本内提取 *Speaker：Text
 _OPTION_DIALOGUE_RE = re.compile(
     r'\*(?P<speaker>[^：\n*{]{1,30})：(?P<text>[^\n*|{}]+)'
 )
@@ -101,25 +105,72 @@ _SKIP_SECTIONS = frozenset([
 _SKIP_TEMPLATE_RE = re.compile(r'^\{\{(?!剧情选项)')
 
 
+def _expand_plot_options(block_content: str) -> list[str]:
+    """
+    解析 {{剧情选项}} 模板内容，返回展开后的 *Speaker：Text 行列表。
+
+    规则:
+    - 提取所有 选项N 文本作为 *开拓者：<选项> 行
+    - 提取所有 剧情N 的 NPC 响应行
+    - 若所有分支 NPC 响应相同 → 合并选项，NPC 响应只写一次
+    - 若分支响应不同 → 每个分支完整保留（体现选项的平行性）
+    """
+    # 提取 选项N 文本
+    option_texts = re.findall(r'选项\d+\s*=\s*([^|}\n]+)', block_content)
+
+    # 提取各分支 剧情N 对话
+    branches: list[list[str]] = []
+    for bm in re.finditer(r'剧情\d+\s*=((?:[^|]|\|(?!选项\d))*)', block_content, re.DOTALL):
+        branch_text = bm.group(1)
+        lines_in_branch = [
+            f"*{m.group('speaker')}：{m.group('text').strip()}"
+            for m in _OPTION_DIALOGUE_RE.finditer(branch_text)
+        ]
+        if lines_in_branch:
+            branches.append(lines_in_branch)
+
+    if not branches:
+        return []
+
+    all_same = len(set(tuple(b) for b in branches)) == 1
+
+    result: list[str] = []
+    if all_same:
+        # 响应一致 → 合并选项
+        if option_texts:
+            merged = " / ".join(t.strip() for t in option_texts if t.strip())
+            result.append(f"*开拓者：{merged}")
+        result.extend(branches[0])
+    else:
+        # 响应不同 → 平行展示每个分支
+        for opt_text, branch_lines in zip(option_texts, branches):
+            if opt_text.strip():
+                result.append(f"*开拓者：{opt_text.strip()}")
+            result.extend(branch_lines)
+
+    return result
+
+
 def _parse_wikitext_dialogues(wikitext: str) -> list[DialogueLine]:
     """
     从 wikitext 中提取对话行，返回有序 DialogueLine 列表。
-    去重（相同 speaker+text 只保留首次出现）。
+
+    步骤:
+    1. 展开 {{剧情选项}} 块（保留玩家选项文本 + 平行/合并分支）
+    2. 按行扫描，跳过非剧情 section
+    3. 提取 *Speaker：Text 格式行
+    4. 去重（相同 speaker+text 只保留首次）
     """
-    # 先把所有 {{剧情选项}} 块展开成普通对话行列表追加
-    option_lines: list[str] = []
-    def _expand_options(m: re.Match) -> str:
-        block = m.group(1)
-        # 提取所有 剧情N= 的台词
-        for dm in _OPTION_DIALOGUE_RE.finditer(block):
-            option_lines.append(f"*{dm.group('speaker')}：{dm.group('text').strip()}")
-        return ""  # 把 {{剧情选项}} 块从正文里删掉
+    # 展开分支选项，替换原块
+    extra_lines: list[str] = []
 
-    wikitext_clean = _PLOT_OPTION_RE.sub(_expand_options, wikitext)
+    def _expand_and_remove(m: re.Match) -> str:
+        expanded = _expand_plot_options(m.group(1))
+        extra_lines.extend(expanded)
+        return ""
 
-    # 把提取到的剧情选项台词接在末尾（稍后按行扫描时会处理）
-    # 实际上应该插入到原位，但因为去重逻辑会过滤重复，追加到末尾也等效
-    wikitext_clean += "\n" + "\n".join(option_lines)
+    wikitext_clean = _PLOT_OPTION_RE.sub(_expand_and_remove, wikitext)
+    wikitext_clean += "\n" + "\n".join(extra_lines)
 
     lines = wikitext_clean.splitlines()
     dialogues: list[DialogueLine] = []
@@ -132,23 +183,19 @@ def _parse_wikitext_dialogues(wikitext: str) -> list[DialogueLine]:
         if not line:
             continue
 
-        # 检测标题，更新跳过状态
         hm = _HEADING_RE.match(line)
         if hm:
-            section = hm.group(1).strip()
-            in_skip = section in _SKIP_SECTIONS
+            in_skip = hm.group(1).strip() in _SKIP_SECTIONS
             continue
 
         if in_skip:
             continue
 
-        # 跳过模板行（不是对话）
         if _SKIP_TEMPLATE_RE.match(line):
             continue
         if line.startswith("|") or line.startswith("----"):
             continue
 
-        # 匹配对话行
         dm = _BULLET_DIALOGUE_RE.match(line)
         if not dm:
             continue
@@ -158,7 +205,6 @@ def _parse_wikitext_dialogues(wikitext: str) -> list[DialogueLine]:
         if not text or not speaker:
             continue
 
-        # 去重
         key = (speaker, text)
         if key in seen:
             continue
