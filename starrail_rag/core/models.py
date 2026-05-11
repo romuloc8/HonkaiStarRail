@@ -19,6 +19,7 @@ class DocType(str, Enum):
     CHARACTER_STORY = "character_story"
     LIGHT_CONE = "light_cone"
     RELIC_SET = "relic_set"
+    RELIC_PIECE = "relic_piece"
     BOOK = "book"
     ITEM_LORE = "item_lore"
 

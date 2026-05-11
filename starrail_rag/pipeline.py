@@ -29,15 +29,24 @@ from starrail_rag.core.models import Document
 from starrail_rag.core.textmap import TextMapResolver
 from starrail_rag.extractors.main_mission import MainMissionExtractor
 from starrail_rag.extractors.wiki_mission import WikiMissionExtractor, CHAPTER_NAMES
+from starrail_rag.extractors.character_story import CharacterStoryExtractor
+from starrail_rag.extractors.light_cone import LightConeExtractor
+from starrail_rag.extractors.relic_set import RelicSetExtractor
+from starrail_rag.extractors.book import BookExtractor
+from starrail_rag.extractors.item_lore import ItemLoreExtractor
 from starrail_rag.loaders.talk_sentence import TalkSentenceIndex
 
 logger = logging.getLogger(__name__)
 
 # Registry mapping extractor name → class
-# Add new extractors here as they are implemented
 _EXTRACTOR_REGISTRY = {
     "main_mission": MainMissionExtractor,
     "wiki_mission": WikiMissionExtractor,
+    "character_story": CharacterStoryExtractor,
+    "light_cone": LightConeExtractor,
+    "relic_set": RelicSetExtractor,
+    "book": BookExtractor,
+    "item_lore": ItemLoreExtractor,
 }
 
 
