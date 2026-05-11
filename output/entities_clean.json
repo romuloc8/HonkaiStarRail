@@ -76,16 +76,42 @@
       "canonical": "黑塔",
       "type": "character",
       "aliases": [
-        "人偶少女",
         "大黑塔",
         "天才俱乐部#83黑塔本尊",
-        "空间站「黑塔」",
         "黑塔女士",
         "黑塔本尊"
       ],
-      "context_aliases": [],
+      "context_aliases": [
+        {
+          "text": "人偶少女",
+          "context": "指代黑塔人偶时（与本人同名，需区分）"
+        }
+      ],
       "source_hint": "段落1：太空封印站",
-      "mention_count": 8
+      "mention_count": 8,
+      "disambiguation_note": "「黑塔」同时指代本人与其制造的人偶（黑塔人偶），需结合上下文区分"
+    },
+    {
+      "canonical": "黑塔人偶",
+      "type": "character",
+      "aliases": [
+        "人偶",
+        "黑塔的人偶",
+        "空间站AI"
+      ],
+      "context_aliases": [
+        {
+          "text": "黑塔",
+          "context": "仅在明确指代人偶而非本人时"
+        },
+        {
+          "text": "人偶少女",
+          "context": "描述人偶外形时"
+        }
+      ],
+      "source_hint": "黑塔制造的AI人偶，代替本人驻守空间站",
+      "mention_count": 1,
+      "disambiguation_note": "与黑塔本人同名，但为独立实体"
     },
     {
       "canonical": "星际和平公司",
@@ -1191,7 +1217,11 @@
       "canonical": "空间站「黑塔」",
       "type": "location",
       "aliases": [
-        "空间站"
+        "「黑塔」空间站",
+        "「黑塔」空间站点",
+        "湛蓝星空间站",
+        "空间站",
+        "黑塔空间站"
       ],
       "context_aliases": [
         {
@@ -1199,7 +1229,7 @@
           "context": "艾丝妲担任站长的空间站"
         }
       ],
-      "source_hint": "艾丝妲担任站长的空间站",
+      "source_hint": "黑塔命名的太空研究站，艾丝妲担任代理站长",
       "mention_count": 2
     },
     {
@@ -1896,17 +1926,6 @@
       "mention_count": 1
     },
     {
-      "canonical": "黑塔空间站",
-      "type": "location",
-      "aliases": [
-        "「黑塔」空间站",
-        "「黑塔」空间站点"
-      ],
-      "context_aliases": [],
-      "source_hint": "段落1：太空封印站",
-      "mention_count": 1
-    },
-    {
       "canonical": "罗浮仙舟",
       "type": "location",
       "aliases": [
@@ -2171,10 +2190,13 @@
     {
       "canonical": "机心戏梦的钟表匠",
       "type": "character",
-      "aliases": [
-        "钟表匠"
+      "aliases": [],
+      "context_aliases": [
+        {
+          "text": "钟表匠",
+          "context": "此「钟表匠」专指遗器所描述的历史人物，与匹诺康尼的米哈伊尔不同"
+        }
       ],
-      "context_aliases": [],
       "source_hint": "遗器套装名及部件描述",
       "mention_count": 1
     },
@@ -5408,11 +5430,13 @@
       "mention_count": 1
     },
     {
-      "canonical": "钟表匠",
+      "canonical": "米哈伊尔",
       "type": "character",
-      "aliases": [],
+      "aliases": [
+        "钟表匠"
+      ],
       "context_aliases": [],
-      "source_hint": "神秘人物，与死亡案件相关",
+      "source_hint": "匹诺康尼的神秘人物，真实身份为米哈伊尔，与死亡案件相关",
       "mention_count": 1
     },
     {
