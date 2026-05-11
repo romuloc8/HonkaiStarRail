@@ -111,7 +111,7 @@
 |----|--------|------|------|
 | W03 | **开拓任务剧情提取** | ✅ 完成 | `starrail_rag/extractors/main_mission.py` — 332 个任务，196 个含对话，5698 条对话行，输出 `output/main_mission.jsonl` |
 | W04 | **文本清洗层** | ✅ 完成 | `starrail_rag/core/cleaner.py` — 清洗 layout tag、unbreak、ruby、gender 条件、XML 残留标签 |
-| W05 | **数据范围精确化** | ⬜ 未开始 | 继续提取：角色故事、光锥描述、遗器套装、书籍/档案 |
+| W05 | **数据范围精确化** | ✅ 完成 | 角色故事、光锥、遗器套装、书籍、道具描述全部实现 |
 | W06 | **领域词表构建** | ⬜ 未开始 | 半自动提取星神名、命途名、阵营名、重要历史事件名；人工审核 |
 | W07 | **文档/Chunk 数据结构定义** | ⬜ 未开始 | 确定向量库 chunk 的 metadata schema 和 chunk size 策略 |
 | W08 | **Layer 1 细粒度文档构建** | ⬜ 未开始 | 按方案 B 生成带 metadata 的原始片段，写入向量库 |
