@@ -42,25 +42,72 @@ from starrail_rag.loaders.talk_sentence import TalkSentenceIndex
 
 logger = logging.getLogger(__name__)
 
-# GameCore task types that embed TalkSentenceID lists
+# GameCore task types that embed TalkSentenceID lists (SimpleTalkList)
 _SIMPLE_TALK_TYPES = {
     "RPG.GameCore.PlayAndWaitSimpleTalk",
     "RPG.GameCore.PlaySimpleTalk",
     "RPG.GameCore.WaitSimpleTalkFinish",
+    # Newer format (翁法罗斯+): same SimpleTalkList structure
+    "RPG.GameCore.PlayMissionTalk",
 }
+
+# GameCore task types that embed TalkSentenceIDs in other list fields
+_BUBBLE_TALK_TYPES = {
+    # BubbleTalkInfoList[].TalkSentenceID
+    "RPG.GameCore.PlayNPCBubbleTalk",
+}
+
+_OPTION_TALK_TYPES = {
+    # OptionList[].TalkSentenceID  (player dialogue choices)
+    "RPG.GameCore.PlayOptionTalk",
+}
+
+
+def _get_fixed_value(field: Any) -> int | None:
+    """Extract integer from {IsDynamic, FixedValue: {Value: N}} wrapper."""
+    if isinstance(field, dict):
+        fv = field.get("FixedValue", {})
+        if isinstance(fv, dict):
+            v = fv.get("Value")
+            if isinstance(v, int):
+                return v
+    if isinstance(field, int):
+        return field
+    return None
 
 
 def _extract_sentence_ids_from_node(node: Any, result: list[int]) -> None:
     """Recursively walk a parsed JSON node and collect TalkSentenceIDs."""
     if isinstance(node, dict):
         task_type = node.get("$type", "")
+
         if task_type in _SIMPLE_TALK_TYPES:
+            # Variant A: explicit SimpleTalkList
             for item in node.get("SimpleTalkList", []):
                 sid = item.get("TalkSentenceID")
                 if isinstance(sid, int):
                     result.append(sid)
+            # Variant B (PlayMissionTalk only): StartSentenceID..EndSentenceID range
+            start = _get_fixed_value(node.get("StartSentenceID"))
+            end = _get_fixed_value(node.get("EndSentenceID"))
+            if start is not None and end is not None and end >= start:
+                result.extend(range(start, end + 1))
+
+        elif task_type in _BUBBLE_TALK_TYPES:
+            for item in node.get("BubbleTalkInfoList", []):
+                sid = item.get("TalkSentenceID")
+                if isinstance(sid, int):
+                    result.append(sid)
+
+        elif task_type in _OPTION_TALK_TYPES:
+            for item in node.get("OptionList", []):
+                sid = item.get("TalkSentenceID")
+                if isinstance(sid, int):
+                    result.append(sid)
+
         for value in node.values():
             _extract_sentence_ids_from_node(value, result)
+
     elif isinstance(node, list):
         for item in node:
             _extract_sentence_ids_from_node(item, result)
@@ -160,30 +207,54 @@ class MainMissionExtractor(BaseExtractor):
         self, mission_id: int, perf_index: dict[int, str]
     ) -> list[Path]:
         """
-        Return an ordered list of Act/Talk file paths for a given mission.
+        Return an ordered list of script files for a given mission.
 
-        Strategy: scan PerformanceE for entries whose path contains the
-        mission_id string.  This catches both the standard pattern
-        (Config/Level/Mission/1000101/Act/…) and edge cases.
+        Two formats exist:
+        - Old (序章–匹诺康尼): PerformanceE.json indexes Act/*.json and Talk_*.json
+        - New (翁法罗斯+):     Mission_*.json files live directly in
+          Config/Level/Mission/{mission_id}/, bypassing PerformanceE entirely.
+
+        We collect both and deduplicate.
         """
         mission_str = str(mission_id)
         paths: list[Path] = []
-        seen: set[str] = set()
+        seen: set[Path] = set()
 
+        def _add(p: Path) -> None:
+            if p not in seen and p.exists():
+                seen.add(p)
+                paths.append(p)
+
+        # --- Old format: PerformanceE index ---
         for perf_path in perf_index.values():
             if mission_str not in perf_path:
                 continue
-            if perf_path in seen:
-                continue
-            seen.add(perf_path)
             abs_path = self.data_root / perf_path
             if abs_path.exists():
-                paths.append(abs_path)
+                _add(abs_path)
             else:
                 logger.debug("Performance path not found on disk: %s", perf_path)
 
-        # Sort for deterministic ordering: Act before Talk, then by filename
-        paths.sort(key=lambda p: (p.parent.name != "Act", p.name))
+        # --- New format: Mission_*.json directly in mission folder ---
+        mission_dir = self.data_root / "Config" / "Level" / "Mission" / mission_str
+        if mission_dir.exists():
+            for f in sorted(mission_dir.iterdir()):
+                if f.name.startswith("Mission_") and f.suffix == ".json":
+                    _add(f)
+
+        # Deterministic ordering: Act/ before Talk_/ before Mission_, then by name
+        def _sort_key(p: Path) -> tuple:
+            name = p.name
+            parent = p.parent.name
+            if parent == "Act":
+                return (0, name)
+            if name.startswith("Talk_"):
+                return (1, name)
+            if name.startswith("Mission_"):
+                return (2, name)
+            return (3, name)
+
+        paths.sort(key=_sort_key)
         return paths
 
     # ------------------------------------------------------------------
