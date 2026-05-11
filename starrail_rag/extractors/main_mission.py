@@ -209,12 +209,23 @@ class MainMissionExtractor(BaseExtractor):
         """
         Return an ordered list of script files for a given mission.
 
-        Two formats exist:
-        - Old (序章–匹诺康尼): PerformanceE.json indexes Act/*.json and Talk_*.json
-        - New (翁法罗斯+):     Mission_*.json files live directly in
-          Config/Level/Mission/{mission_id}/, bypassing PerformanceE entirely.
+        Strategy: scan the mission directory tree directly, bypassing the
+        PerformanceE/D index entirely.  This is more complete because:
 
-        We collect both and deduplicate.
+        - PerformanceE only covers ~70% of Act files; many remain unindexed.
+        - PerformanceD covers an additional subset but still leaves gaps.
+        - Direct filesystem scan catches every Act, Talk, and Mission_ file.
+
+        Two directory layouts exist:
+        - Old (序章–匹诺康尼):
+            Config/Level/Mission/{id}/Act/Act*.json
+            Config/Level/Mission/{id}/Talk/Talk_*.json
+        - New (翁法罗斯+):
+            Config/Level/Mission/{id}/Mission_*.json
+
+        The PerformanceE index is retained as a fallback for edge cases where
+        the mission directory doesn't match the mission ID (rare cross-mission
+        references).
         """
         mission_str = str(mission_id)
         paths: list[Path] = []
@@ -225,30 +236,37 @@ class MainMissionExtractor(BaseExtractor):
                 seen.add(p)
                 paths.append(p)
 
-        # --- Old format: PerformanceE index ---
+        # --- Primary: scan mission directory tree directly ---
+        mission_dir = self.data_root / "Config" / "Level" / "Mission" / mission_str
+        if mission_dir.exists():
+            # Old format: Act/ and Talk/ subdirectories
+            for subdir_name in ("Act", "Talk"):
+                subdir = mission_dir / subdir_name
+                if subdir.exists():
+                    for f in sorted(subdir.iterdir()):
+                        if f.suffix == ".json":
+                            _add(f)
+            # New format: Mission_*.json at root of mission dir
+            for f in sorted(mission_dir.iterdir()):
+                if f.name.startswith("Mission_") and f.suffix == ".json":
+                    _add(f)
+
+        # --- Fallback: PerformanceE index for cross-mission paths ---
+        # Some performances reference files in other mission folders.
         for perf_path in perf_index.values():
             if mission_str not in perf_path:
                 continue
             abs_path = self.data_root / perf_path
             if abs_path.exists():
                 _add(abs_path)
-            else:
-                logger.debug("Performance path not found on disk: %s", perf_path)
 
-        # --- New format: Mission_*.json directly in mission folder ---
-        mission_dir = self.data_root / "Config" / "Level" / "Mission" / mission_str
-        if mission_dir.exists():
-            for f in sorted(mission_dir.iterdir()):
-                if f.name.startswith("Mission_") and f.suffix == ".json":
-                    _add(f)
-
-        # Deterministic ordering: Act/ before Talk_/ before Mission_, then by name
+        # Deterministic ordering: Act/ → Talk/ → Mission_*.json
         def _sort_key(p: Path) -> tuple:
-            name = p.name
             parent = p.parent.name
+            name = p.name
             if parent == "Act":
                 return (0, name)
-            if name.startswith("Talk_"):
+            if parent == "Talk":
                 return (1, name)
             if name.startswith("Mission_"):
                 return (2, name)
