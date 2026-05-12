@@ -1,0 +1,395 @@
+{
+  "version": "1.0",
+  "description": "星穹铁道世界观 RAG 评估集",
+  "questions": [
+    {
+      "id": "Q001",
+      "difficulty": "easy",
+      "question": "星穹列车的现任列车长叫什么名字？",
+      "answer_key_points": [
+        "帕姆"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["basic_lore"],
+      "requires_hops": 1,
+      "notes": "考察最基础的NPC识别能力"
+    },
+    {
+      "id": "Q002",
+      "difficulty": "easy",
+      "question": "主角（开拓者）体内被植入了什么物品，从而苏醒？",
+      "answer_key_points": [
+        "星核",
+        "万界之癌（可选，作为星核的别称）"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["main_story_prologue"],
+      "requires_hops": 1,
+      "notes": "考察主线剧情起点的关键道具"
+    },
+    {
+      "id": "Q003",
+      "difficulty": "easy",
+      "question": "贝洛伯格目前的「大守护者」是谁？",
+      "answer_key_points": [
+        "布洛妮娅",
+        "布洛妮娅·兰德"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["main_story_jarilo"],
+      "requires_hops": 1,
+      "notes": "考察雅利洛-VI主线结局的人物身份变更"
+    },
+    {
+      "id": "Q004",
+      "difficulty": "easy",
+      "question": "仙舟「罗浮」的现任神策将军是谁？",
+      "answer_key_points": [
+        "景元"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_info", "wiki_faction"],
+      "requires_hops": 1,
+      "notes": "考察重要阵营领袖实体"
+    },
+    {
+      "id": "Q005",
+      "difficulty": "easy",
+      "question": "「星穹列车」是哪位星神留下的遗产？",
+      "answer_key_points": [
+        "开拓星神",
+        "阿基维利"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_aeon"],
+      "requires_hops": 1,
+      "notes": "考察核心阵营背后的星神设定"
+    },
+    {
+      "id": "Q006",
+      "difficulty": "easy",
+      "question": "黑塔空间站的代理站长是谁？",
+      "answer_key_points": [
+        "艾丝妲"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_info", "wiki_location"],
+      "requires_hops": 1,
+      "notes": "容易与真正的主人（黑塔）混淆，测试RAG提取精准度"
+    },
+    {
+      "id": "Q007",
+      "difficulty": "easy",
+      "question": "「巡猎」命途的星神叫什么名字？",
+      "answer_key_points": [
+        "岚",
+        "帝弓司命（仙舟尊称）"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_aeon"],
+      "requires_hops": 1,
+      "notes": "考察基础星神概念提取"
+    },
+    {
+      "id": "Q008",
+      "difficulty": "easy",
+      "question": "丹恒的前世（上一任持明龙尊）被称为什么？",
+      "answer_key_points": [
+        "饮月君",
+        "丹枫"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_story"],
+      "requires_hops": 1,
+      "notes": "考察角色背景故事中的简单实体关系"
+    },
+    {
+      "id": "Q009",
+      "difficulty": "easy",
+      "question": "匹诺康尼的盛会之星实际上是由哪个派系掌控的？",
+      "answer_key_points": [
+        "家族"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_faction", "main_story_penacony"],
+      "requires_hops": 1,
+      "notes": "测试星球与阵营势力的关联提取"
+    },
+    {
+      "id": "Q010",
+      "difficulty": "easy",
+      "question": "「流萤」在现实中操控的机甲代号是什么？",
+      "answer_key_points": [
+        "萨姆",
+        "SAM"
+      ],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_story", "main_story_penacony"],
+      "requires_hops": 1,
+      "notes": "剧情反转相关的基础事实问题"
+    },
+    {
+      "id": "Q011",
+      "difficulty": "medium",
+      "question": "丹恒、刃、景元、镜流和白珩这五个人在仙舟历史上被合称为什么？导致他们分崩离析的关键事件是什么？",
+      "answer_key_points": [
+        "云上五骁",
+        "饮月之乱（或白珩之死引发的复活实验）"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["character_story", "wiki_history"],
+      "requires_hops": 2,
+      "notes": "需要关联多个角色的背景故事和仙舟历史文本"
+    },
+    {
+      "id": "Q012",
+      "difficulty": "medium",
+      "question": "在被「家族」接管并改造为盛会之星前，匹诺康尼曾是星际和平公司（IPC）用来做什么的星球？",
+      "answer_key_points": [
+        "流放罪犯的监狱星球（或边境监狱）",
+        "为了开采忆质"
+      ],
+      "reasoning_type": "multi_hop_reasoning",
+      "requires_sources": ["main_story_penacony", "wiki_location_lore"],
+      "requires_hops": 2,
+      "notes": "测试对地名历史变迁的跨章节文本综合能力"
+    },
+    {
+      "id": "Q013",
+      "difficulty": "medium",
+      "question": "星际和平公司「石心十人」中的砂金和托帕，他们能够在借用「存护」令使力量时使用的核心媒介是什么？该媒介由谁赐予？",
+      "answer_key_points": [
+        "基石（或存护的基石）",
+        "钻石（「存护」令使）"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["main_story_penacony", "wiki_faction_ipc"],
+      "requires_hops": 2,
+      "notes": "需要关联公司高层架构与具体角色的剧情设定"
+    },
+    {
+      "id": "Q014",
+      "difficulty": "medium",
+      "question": "引发「寰宇蝗灾」的繁育星神叫什么名字？祂最终在多位星神的围攻下被谁挥下的重锤击碎？",
+      "answer_key_points": [
+        "塔伊兹育罗斯",
+        "克里珀（存护星神）"
+      ],
+      "reasoning_type": "multi_hop_reasoning",
+      "requires_sources": ["simulated_universe_lore", "wiki_aeon"],
+      "requires_hops": 2,
+      "notes": "考察模拟宇宙特有文本与星神图鉴的结合"
+    },
+    {
+      "id": "Q015",
+      "difficulty": "medium",
+      "question": "在黑塔空间站的禁闭舱段中，阮·梅试图培育出的星星虫群巨兽，是哪位「繁育」令使的复制体？",
+      "answer_key_points": [
+        "碎星王（或斯卡拉卡巴兹）"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_mission_continuation", "boss_lore"],
+      "requires_hops": 2,
+      "notes": "需要结合阮·梅同行/开拓续闻与Boss背景介绍"
+    },
+    {
+      "id": "Q016",
+      "difficulty": "medium",
+      "question": "雅利洛-VI历史上的第一任大守护者阿丽萨·兰德，当初是为了抵抗哪个势力的入侵，才不得不借助星核力量引发了覆盖全球的寒潮？",
+      "answer_key_points": [
+        "反物质军团"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["main_story_jarilo", "wiki_history_jarilo"],
+      "requires_hops": 2,
+      "notes": "考察对星球历史起因与敌对势力关联的理解"
+    },
+    {
+      "id": "Q017",
+      "difficulty": "medium",
+      "question": "仙舟「罗浮」建木灾异的幕后黑手幻胧，其真实身份是哪位星神麾下的什么职位？",
+      "answer_key_points": [
+        "纳努克（毁灭星神）",
+        "绝灭大君"
+      ],
+      "reasoning_type": "multi_hop_reasoning",
+      "requires_sources": ["main_story_luofu", "wiki_faction_antimatter"],
+      "requires_hops": 2,
+      "notes": "需要将主线剧情Boss与宏观宇宙反派阵营架构进行对应"
+    },
+    {
+      "id": "Q018",
+      "difficulty": "medium",
+      "question": "「模拟宇宙」项目是由天才俱乐部中的哪四位成员共同主导开发的？",
+      "answer_key_points": [
+        "黑塔",
+        "阮·梅",
+        "螺丝咕姆",
+        "斯蒂芬·劳埃德"
+      ],
+      "reasoning_type": "information_aggregation",
+      "requires_sources": ["simulated_universe_intro", "wiki_faction_genius"],
+      "requires_hops": 3,
+      "notes": "需要从不同的文本对话中收集齐四个散落的实体"
+    },
+    {
+      "id": "Q019",
+      "difficulty": "medium",
+      "question": "流萤（萨姆）作为格拉默铁骑的一员，患有什么基因缺陷导致的绝症，使得她的物理肉体结构会逐渐走向不可逆的消亡？",
+      "answer_key_points": [
+        "失熵症"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["main_story_penacony", "planar_ornament_glamoth"],
+      "requires_hops": 2,
+      "notes": "结合主线台词与位面饰品故事进行推理"
+    },
+    {
+      "id": "Q020",
+      "difficulty": "medium",
+      "question": "列车组在匹诺康尼遇到的「黄泉」，其使用的真实命途并非「巡猎」，而是哪位星神代表的什么命途？",
+      "answer_key_points": [
+        "IX（黑日/星神）",
+        "虚无"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["main_story_penacony", "wiki_aeon_nix"],
+      "requires_hops": 2,
+      "notes": "测试对剧情表层欺骗信息（自称巡猎游侠）的识别及真相提取"
+    },
+    {
+      "id": "Q021",
+      "difficulty": "hard",
+      "question": "天才俱乐部第79席查德威克开发的「虚数脉冲」技术，与星际和平公司历史上用来威慑摧毁多座星球的超级武器有什么隐秘联系？这反映了公司对天才研究成果的何种态度？",
+      "answer_key_points": [
+        "公司的超级武器正是基于查德威克被窃取/强迫交出的虚数脉冲技术制造的",
+        "查德威克本意并非制造屠杀武器，但公司将其武器化并用于扩张与威慑",
+        "公司（特别是筑材物流部等）会为达目的不择手段地掠夺和利用天才的技术"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["mission_penacony_chadwick", "wiki_faction_ipc", "readable_book_ipc_history"],
+      "requires_hops": 3,
+      "notes": "需要将匹诺康尼NPC支线故事与宇宙宏观历史文献（公司摧毁星球的武器记录）进行拼接推理"
+    },
+    {
+      "id": "Q022",
+      "difficulty": "hard",
+      "question": "星际和平公司「市场开拓部」的主管奥斯瓦尔多·施耐德，其早年曾拥有过哪个阵营的隐秘身份？这个身份与他后来在公司内部推行对茨冈尼亚等星球的激进同化政策，构成了怎样的矛盾与讽刺？",
+      "answer_key_points": [
+        "他早年曾是「无名客」（星穹列车的一员）",
+        "「开拓」本意是连接与探索未知，但他却将其扭曲为以「存护」为名的征服、殖民和霸权扩张"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_character_lore", "readable_book_ipc", "mission_sigonia_lore"],
+      "requires_hops": 3,
+      "notes": "关联公司高管背景设定与特定星球（如砂金故乡）的悲惨历史，推理其阵营身份的转化"
+    },
+    {
+      "id": "Q023",
+      "difficulty": "hard",
+      "question": "在仙舟「罗浮」的设定中，白露作为现任「衔药龙女」，其形态异于正常持明族且缺乏完整的龙尊记忆。结合《建木史话》等文本，这一现象与丹枫在「饮月之乱」中对谁实施的何种禁忌实验直接相关？",
+      "answer_key_points": [
+        "对已故的云上五骁成员「白珩」实施了实验",
+        "使用了丰饶令使「倏忽」的血肉与持明的「化龙妙法」试图将其复活",
+        "白露本质上是该复活实验的残缺产物/白珩的转世"
+      ],
+      "reasoning_type": "implicit_lore_mapping",
+      "requires_sources": ["character_story_bailu", "character_story_danheng", "wiki_history_luofu", "readable_book_xianzhou"],
+      "requires_hops": 4,
+      "notes": "游戏文本从未直接写明“白露就是白珩”，需要通过多方残卷、龙尊传承规则和角色故事交叉作证"
+    },
+    {
+      "id": "Q024",
+      "difficulty": "hard",
+      "question": "位面饰品「苍穹战线格拉默」描述的帝国为了对抗虫群制造了大量铁骑。结合「繁育」星神的陨落历史，格拉默帝国的覆灭实际上是发生在寰宇蝗灾的高潮期，还是塔伊兹育罗斯陨落之后？为什么？",
+      "answer_key_points": [
+        "发生在塔伊兹育罗斯（繁育星神）陨落之后",
+        "星神陨落后虫群并未瞬间灭绝，帝国在残局中继续战斗",
+        "帝国最终覆灭是因为高层（女皇与议会）的瓦解，以及患有「失熵症」的铁骑失去控制目标后从内部崩溃"
+      ],
+      "reasoning_type": "timeline_reconstruction",
+      "requires_sources": ["planar_ornament_glamoth", "simulated_universe_swarm", "character_story_firefly"],
+      "requires_hops": 3,
+      "notes": "需要对比模拟宇宙的星神陨落时间线与位面饰品的微观帝国兴衰史"
+    },
+    {
+      "id": "Q025",
+      "difficulty": "hard",
+      "question": "匹诺康尼的系列动画片《钟表小子》中，反派「石头老板」和主角「哈努兄弟」的对抗，在匹诺康尼的真实历史中分别隐喻了哪两个现实势力？这场对抗隐喻了什么历史事件？",
+      "answer_key_points": [
+        "「石头老板」隐喻星际和平公司（IPC的筑材物流部/总监）",
+        "「哈努兄弟」隐喻哈努努及其领导的匹诺康尼边境监狱囚犯（以及援助他们的无名客）",
+        "隐喻了匹诺康尼反抗公司统治、争取自由的独立战争"
+      ],
+      "reasoning_type": "metaphor_resolution",
+      "requires_sources": ["mission_penacony_main", "readable_book_clockie", "wiki_history_penacony"],
+      "requires_hops": 2,
+      "notes": "要求RAG系统能够识别文本中的寓言隐喻，并映射到世界观的真实历史实体上"
+    },
+    {
+      "id": "Q026",
+      "difficulty": "hard",
+      "question": "模拟宇宙文本中提及的「寂静领主」波尔卡·卡卡蒙（天才俱乐部第4席），她与天才俱乐部第27席帝皇鲁珀特（第一次机械皇国的主导者）的死亡有何隐性关联？这反映了她作为天才的什么极端行事风格？",
+      "answer_key_points": [
+        "帝皇鲁珀特极有可能是被波尔卡·卡卡蒙亲手刺杀/摧毁的",
+        "她的行事风格是物理消灭那些她认为会给宇宙带来不可逆毁灭或偏离轨道的天才俱乐部成员"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["simulated_universe_genius", "wiki_faction_genius_society", "item_lore_rubert"],
+      "requires_hops": 3,
+      "notes": "需要从碎片化的模拟宇宙事件和奇物描述中，拼凑出波尔卡的宇宙刺客身份及受害者名单"
+    },
+    {
+      "id": "Q027",
+      "difficulty": "hard",
+      "question": "罗刹在同行任务中表现出对仙舟「丰饶」孽物的敌意，而他携带的棺柩中装有不可名状的遗骸。结合他与镜流在主线末尾的对话，两人达成合作的最终共同目标是什么？这与他们各自过去的经历有何矛盾之处？",
+      "answer_key_points": [
+        "最终共同目标是彻底杀死「丰饶」星神药师",
+        "矛盾在于：罗刹本身极度依赖或拥有类似丰饶的治愈力量（甚至被怀疑来自化外/丰饶民）；而镜流曾饱受丰饶恩赐（魔阴身）之苦，却与使用该力量的罗刹同行"
+      ],
+      "reasoning_type": "motive_analysis",
+      "requires_sources": ["mission_luofu_main", "mission_luocha_companion", "character_voice_jingliu"],
+      "requires_hops": 3,
+      "notes": "需要提炼角色的深层动机，并识别其行为表现与能力属性之间的剧情张力"
+    },
+    {
+      "id": "Q028",
+      "difficulty": "hard",
+      "question": "遗器「毁烬焚骨的大公」讲述了冥火大公伊弗利特的故事。他在受邀前往匹诺康尼的途中遭遇了谁的截杀导致冥火一族覆灭？截杀者的命途与大公狂热崇拜的星神命途在宇宙观中存在怎样的哲学对立？",
+      "answer_key_points": [
+        "遭遇了黄泉（虚无令使）的截杀",
+        "大公崇拜纳努克（毁灭），追求极致的燃烧、破坏与存在的意义（暴力证明价值）；黄泉代表IX（虚无），其力量意味着万物皆空、失去意义与归于沉寂，从本质上否定了毁灭的狂热"
+      ],
+      "reasoning_type": "philosophical_inference",
+      "requires_sources": ["relic_set_duke", "mission_penacony_prelude", "wiki_aeon_philosophy"],
+      "requires_hops": 3,
+      "notes": "不仅考察事件事实（黄泉杀大公），还要求RAG系统能提取并对比命途背后的抽象哲学概念"
+    },
+    {
+      "id": "Q029",
+      "difficulty": "hard",
+      "question": "三月七被封印在「六相冰」中在宇宙中漂流。结合《智库》中关于各星神权能的描述以及黑塔对该物质的解析记录，这种无法被常规手段融化的奇特冰晶，最可能源自哪位星神或其派系的手笔？目的是什么？",
+      "answer_key_points": [
+        "最可能源自「记忆」星神浮黎或其麾下的流光忆庭",
+        "目的是为了绝对无损地「保存」某个重要的存在或记忆（六相冰是记忆命途概念的具象化实体）"
+      ],
+      "reasoning_type": "implicit_lore_mapping",
+      "requires_sources": ["character_story_march7th", "wiki_aeon_fuli", "databank_lore"],
+      "requires_hops": 2,
+      "notes": "将角色身上的未知现象与智库中庞大的星神设定进行特征匹配"
+    },
+    {
+      "id": "Q030",
+      "difficulty": "hard",
+      "question": "在仙舟主线中，幻胧能够长时间完美伪装成停云而不被太卜司的穷观阵及符玄察觉。结合开拓续闻中阮·梅对令使造物的研究，这种级别的伪装在物理层面上必须满足什么先决条件？这暗示了真正的停云当时处于什么状态？",
+      "answer_key_points": [
+        "物理层面上幻胧必须利用了停云真实的肉身（或某种极其高阶的血肉重塑/置换技术），而非单纯的幻术",
+        "暗示真正的停云当时在物理上已经被幻胧控制、劫持甚至夺取了躯壳（生死未卜，但其身体特征被提取用于骗过阵法）"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["mission_luofu_main", "mission_ruanmei_continuation", "readable_book_divination"],
+      "requires_hops": 3,
+      "notes": "通过后续版本其他角色的科研理论文本，反向推导早期剧情中反派作案手法的底层逻辑"
+    }
+  ]
+}
