@@ -1,6 +1,39 @@
 {
   "version": "1.0",
   "description": "星穹铁道世界观 RAG 评估集",
+  "metadata": {
+    "total_questions": 30,
+    "by_difficulty": {
+      "easy": 10,
+      "medium": 10,
+      "hard": 10
+    },
+    "by_reasoning_type": {
+      "factual": 10,
+      "multi_hop_reasoning": 3,
+      "cross_document_inference": 11,
+      "information_aggregation": 1,
+      "timeline_reconstruction": 1,
+      "metaphor_resolution": 1,
+      "motive_analysis": 1,
+      "philosophical_inference": 1,
+      "implicit_lore_mapping": 2
+    },
+    "data_source_map": {
+      "wiki_mission": "output/wiki_mission.jsonl（开拓任务主线剧情）",
+      "wiki_category": "output/wiki_category.jsonl（同行/续闻/冒险/活动任务）",
+      "character_story": "output/character_story.jsonl（角色故事）",
+      "book": "output/book.jsonl（游戏内书籍/档案）",
+      "relic_set": "output/relic_set.jsonl（遗器套装描述）",
+      "item_lore": "output/item_lore.jsonl（道具背景描述）",
+      "light_cone": "output/light_cone.jsonl（光锥描述）"
+    },
+    "notes": [
+      "requires_sources 使用概念性来源名称，便于理解；实际数据文件对应见 data_source_map",
+      "answer_key_points 为评分要点，不要求 RAG 系统原文复现，关键概念命中即可",
+      "Hard 题（Q021-Q030）是本项目核心能力测试，正常 RAG 系统无法回答，需要 GraphRAG 跨文档推理"
+    ]
+  },
   "questions": [
     {
       "id": "Q001",
@@ -10,7 +43,9 @@
         "帕姆"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["basic_lore"],
+      "requires_sources": [
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "考察最基础的NPC识别能力"
     },
@@ -23,7 +58,9 @@
         "万界之癌（可选，作为星核的别称）"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["main_story_prologue"],
+      "requires_sources": [
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "考察主线剧情起点的关键道具"
     },
@@ -36,7 +73,9 @@
         "布洛妮娅·兰德"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["main_story_jarilo"],
+      "requires_sources": [
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "考察雅利洛-VI主线结局的人物身份变更"
     },
@@ -48,7 +87,10 @@
         "景元"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["character_info", "wiki_faction"],
+      "requires_sources": [
+        "character_story",
+        "wiki_category"
+      ],
       "requires_hops": 1,
       "notes": "考察重要阵营领袖实体"
     },
@@ -61,7 +103,9 @@
         "阿基维利"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["wiki_aeon"],
+      "requires_sources": [
+        "item_lore"
+      ],
       "requires_hops": 1,
       "notes": "考察核心阵营背后的星神设定"
     },
@@ -73,7 +117,10 @@
         "艾丝妲"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["character_info", "wiki_location"],
+      "requires_sources": [
+        "character_story",
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "容易与真正的主人（黑塔）混淆，测试RAG提取精准度"
     },
@@ -83,12 +130,14 @@
       "question": "「巡猎」命途的星神叫什么名字？",
       "answer_key_points": [
         "岚",
-        "帝弓司命（仙舟尊称）"
+        "帝弓司命（仙舟对其的尊称）"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["wiki_aeon"],
+      "requires_sources": [
+        "item_lore"
+      ],
       "requires_hops": 1,
-      "notes": "考察基础星神概念提取"
+      "notes": "考察基础星神概念提取；「帝弓司命」是仙舟文化对该星神的专属称谓，非通用名"
     },
     {
       "id": "Q008",
@@ -99,7 +148,9 @@
         "丹枫"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["character_story"],
+      "requires_sources": [
+        "character_story"
+      ],
       "requires_hops": 1,
       "notes": "考察角色背景故事中的简单实体关系"
     },
@@ -111,7 +162,10 @@
         "家族"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["wiki_faction", "main_story_penacony"],
+      "requires_sources": [
+        "wiki_category",
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "测试星球与阵营势力的关联提取"
     },
@@ -124,7 +178,10 @@
         "SAM"
       ],
       "reasoning_type": "factual",
-      "requires_sources": ["character_story", "main_story_penacony"],
+      "requires_sources": [
+        "character_story",
+        "wiki_mission"
+      ],
       "requires_hops": 1,
       "notes": "剧情反转相关的基础事实问题"
     },
@@ -137,7 +194,10 @@
         "饮月之乱（或白珩之死引发的复活实验）"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["character_story", "wiki_history"],
+      "requires_sources": [
+        "character_story",
+        "book"
+      ],
       "requires_hops": 2,
       "notes": "需要关联多个角色的背景故事和仙舟历史文本"
     },
@@ -150,7 +210,10 @@
         "为了开采忆质"
       ],
       "reasoning_type": "multi_hop_reasoning",
-      "requires_sources": ["main_story_penacony", "wiki_location_lore"],
+      "requires_sources": [
+        "wiki_mission",
+        "book"
+      ],
       "requires_hops": 2,
       "notes": "测试对地名历史变迁的跨章节文本综合能力"
     },
@@ -163,7 +226,10 @@
         "钻石（「存护」令使）"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["main_story_penacony", "wiki_faction_ipc"],
+      "requires_sources": [
+        "wiki_mission",
+        "wiki_category"
+      ],
       "requires_hops": 2,
       "notes": "需要关联公司高层架构与具体角色的剧情设定"
     },
@@ -176,7 +242,10 @@
         "克里珀（存护星神）"
       ],
       "reasoning_type": "multi_hop_reasoning",
-      "requires_sources": ["simulated_universe_lore", "wiki_aeon"],
+      "requires_sources": [
+        "wiki_category",
+        "item_lore"
+      ],
       "requires_hops": 2,
       "notes": "考察模拟宇宙特有文本与星神图鉴的结合"
     },
@@ -188,7 +257,10 @@
         "碎星王（或斯卡拉卡巴兹）"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["wiki_mission_continuation", "boss_lore"],
+      "requires_sources": [
+        "wiki_category",
+        "item_lore"
+      ],
       "requires_hops": 2,
       "notes": "需要结合阮·梅同行/开拓续闻与Boss背景介绍"
     },
@@ -200,7 +272,10 @@
         "反物质军团"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["main_story_jarilo", "wiki_history_jarilo"],
+      "requires_sources": [
+        "wiki_mission",
+        "book"
+      ],
       "requires_hops": 2,
       "notes": "考察对星球历史起因与敌对势力关联的理解"
     },
@@ -213,7 +288,10 @@
         "绝灭大君"
       ],
       "reasoning_type": "multi_hop_reasoning",
-      "requires_sources": ["main_story_luofu", "wiki_faction_antimatter"],
+      "requires_sources": [
+        "wiki_mission",
+        "wiki_category"
+      ],
       "requires_hops": 2,
       "notes": "需要将主线剧情Boss与宏观宇宙反派阵营架构进行对应"
     },
@@ -228,7 +306,9 @@
         "斯蒂芬·劳埃德"
       ],
       "reasoning_type": "information_aggregation",
-      "requires_sources": ["simulated_universe_intro", "wiki_faction_genius"],
+      "requires_sources": [
+        "wiki_category"
+      ],
       "requires_hops": 3,
       "notes": "需要从不同的文本对话中收集齐四个散落的实体"
     },
@@ -240,22 +320,28 @@
         "失熵症"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["main_story_penacony", "planar_ornament_glamoth"],
+      "requires_sources": [
+        "wiki_mission",
+        "relic_set"
+      ],
       "requires_hops": 2,
-      "notes": "结合主线台词与位面饰品故事进行推理"
+      "notes": "结合主线台词与位面饰品故事（苍穹战线格拉默）进行推理"
     },
     {
       "id": "Q020",
       "difficulty": "medium",
       "question": "列车组在匹诺康尼遇到的「黄泉」，其使用的真实命途并非「巡猎」，而是哪位星神代表的什么命途？",
       "answer_key_points": [
-        "IX（黑日/星神）",
+        "Ⅸ（虚无星神，罗马数字九，游戏内正式写法为「Ⅸ」）",
         "虚无"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["main_story_penacony", "wiki_aeon_nix"],
+      "requires_sources": [
+        "wiki_mission",
+        "item_lore"
+      ],
       "requires_hops": 2,
-      "notes": "测试对剧情表层欺骗信息（自称巡猎游侠）的识别及真相提取"
+      "notes": "测试对剧情表层欺骗信息（自称巡猎游侠）的识别及真相提取；注意星神名称为「Ⅸ」而非「IX」或「黑日」"
     },
     {
       "id": "Q021",
@@ -267,7 +353,10 @@
         "公司（特别是筑材物流部等）会为达目的不择手段地掠夺和利用天才的技术"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["mission_penacony_chadwick", "wiki_faction_ipc", "readable_book_ipc_history"],
+      "requires_sources": [
+        "wiki_category",
+        "book"
+      ],
       "requires_hops": 3,
       "notes": "需要将匹诺康尼NPC支线故事与宇宙宏观历史文献（公司摧毁星球的武器记录）进行拼接推理"
     },
@@ -280,7 +369,11 @@
         "「开拓」本意是连接与探索未知，但他却将其扭曲为以「存护」为名的征服、殖民和霸权扩张"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["wiki_character_lore", "readable_book_ipc", "mission_sigonia_lore"],
+      "requires_sources": [
+        "character_story",
+        "book",
+        "wiki_category"
+      ],
       "requires_hops": 3,
       "notes": "关联公司高管背景设定与特定星球（如砂金故乡）的悲惨历史，推理其阵营身份的转化"
     },
@@ -294,9 +387,13 @@
         "白露本质上是该复活实验的残缺产物/白珩的转世"
       ],
       "reasoning_type": "implicit_lore_mapping",
-      "requires_sources": ["character_story_bailu", "character_story_danheng", "wiki_history_luofu", "readable_book_xianzhou"],
+      "requires_sources": [
+        "character_story",
+        "book",
+        "wiki_mission"
+      ],
       "requires_hops": 4,
-      "notes": "游戏文本从未直接写明“白露就是白珩”，需要通过多方残卷、龙尊传承规则和角色故事交叉作证"
+      "notes": "游戏文本从未直接写明「白露就是白珩」，需要通过多方残卷、龙尊传承规则和角色故事交叉作证；character_story 包含白露和丹恒故事，book 包含建木史话等仙舟典籍"
     },
     {
       "id": "Q024",
@@ -308,9 +405,13 @@
         "帝国最终覆灭是因为高层（女皇与议会）的瓦解，以及患有「失熵症」的铁骑失去控制目标后从内部崩溃"
       ],
       "reasoning_type": "timeline_reconstruction",
-      "requires_sources": ["planar_ornament_glamoth", "simulated_universe_swarm", "character_story_firefly"],
+      "requires_sources": [
+        "relic_set",
+        "wiki_category",
+        "character_story"
+      ],
       "requires_hops": 3,
-      "notes": "需要对比模拟宇宙的星神陨落时间线与位面饰品的微观帝国兴衰史"
+      "notes": "需要对比模拟宇宙的星神陨落时间线与位面饰品的微观帝国兴衰史；relic_set 中有苍穹战线格拉默，character_story 中有流萤故事"
     },
     {
       "id": "Q025",
@@ -322,7 +423,10 @@
         "隐喻了匹诺康尼反抗公司统治、争取自由的独立战争"
       ],
       "reasoning_type": "metaphor_resolution",
-      "requires_sources": ["mission_penacony_main", "readable_book_clockie", "wiki_history_penacony"],
+      "requires_sources": [
+        "wiki_mission",
+        "book"
+      ],
       "requires_hops": 2,
       "notes": "要求RAG系统能够识别文本中的寓言隐喻，并映射到世界观的真实历史实体上"
     },
@@ -335,7 +439,11 @@
         "她的行事风格是物理消灭那些她认为会给宇宙带来不可逆毁灭或偏离轨道的天才俱乐部成员"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["simulated_universe_genius", "wiki_faction_genius_society", "item_lore_rubert"],
+      "requires_sources": [
+        "wiki_category",
+        "wiki_category",
+        "item_lore"
+      ],
       "requires_hops": 3,
       "notes": "需要从碎片化的模拟宇宙事件和奇物描述中，拼凑出波尔卡的宇宙刺客身份及受害者名单"
     },
@@ -348,7 +456,11 @@
         "矛盾在于：罗刹本身极度依赖或拥有类似丰饶的治愈力量（甚至被怀疑来自化外/丰饶民）；而镜流曾饱受丰饶恩赐（魔阴身）之苦，却与使用该力量的罗刹同行"
       ],
       "reasoning_type": "motive_analysis",
-      "requires_sources": ["mission_luofu_main", "mission_luocha_companion", "character_voice_jingliu"],
+      "requires_sources": [
+        "wiki_mission",
+        "wiki_category",
+        "character_story"
+      ],
       "requires_hops": 3,
       "notes": "需要提炼角色的深层动机，并识别其行为表现与能力属性之间的剧情张力"
     },
@@ -361,7 +473,11 @@
         "大公崇拜纳努克（毁灭），追求极致的燃烧、破坏与存在的意义（暴力证明价值）；黄泉代表IX（虚无），其力量意味着万物皆空、失去意义与归于沉寂，从本质上否定了毁灭的狂热"
       ],
       "reasoning_type": "philosophical_inference",
-      "requires_sources": ["relic_set_duke", "mission_penacony_prelude", "wiki_aeon_philosophy"],
+      "requires_sources": [
+        "relic_set",
+        "wiki_mission",
+        "item_lore"
+      ],
       "requires_hops": 3,
       "notes": "不仅考察事件事实（黄泉杀大公），还要求RAG系统能提取并对比命途背后的抽象哲学概念"
     },
@@ -374,7 +490,10 @@
         "目的是为了绝对无损地「保存」某个重要的存在或记忆（六相冰是记忆命途概念的具象化实体）"
       ],
       "reasoning_type": "implicit_lore_mapping",
-      "requires_sources": ["character_story_march7th", "wiki_aeon_fuli", "databank_lore"],
+      "requires_sources": [
+        "character_story",
+        "item_lore"
+      ],
       "requires_hops": 2,
       "notes": "将角色身上的未知现象与智库中庞大的星神设定进行特征匹配"
     },
@@ -387,7 +506,11 @@
         "暗示真正的停云当时在物理上已经被幻胧控制、劫持甚至夺取了躯壳（生死未卜，但其身体特征被提取用于骗过阵法）"
       ],
       "reasoning_type": "cross_document_inference",
-      "requires_sources": ["mission_luofu_main", "mission_ruanmei_continuation", "readable_book_divination"],
+      "requires_sources": [
+        "wiki_mission",
+        "wiki_category",
+        "book"
+      ],
       "requires_hops": 3,
       "notes": "通过后续版本其他角色的科研理论文本，反向推导早期剧情中反派作案手法的底层逻辑"
     }
