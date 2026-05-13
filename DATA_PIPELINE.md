@@ -235,6 +235,98 @@ Output JSON: [{"canonical": "verb", "variants": ["v1", "v2"]}]
 
 | 工作项 | ID | 依赖 |
 |--------|-----|------|
+| BM25 Sparse 索引 + HybridRetriever | Step2 | 向量化完成 ✅ |
+| LightRAG 建图 | W10/W11 | W07 ✅, W08 ✅ |
+| 混合检索路由 | W12 | W10 |
+| 生成层接入 | W13 | W12 |
+| 端到端评估 | W15 | W02 ✅（评估集）, W13 |
+
+## 7. 向量化管线（W07/W08）
+
+### 7.1 Chunk Builder
+
+**入口**：`starrail_rag/indexing/chunker.py`，`ChunkBuilder` 类
+
+各文档类型的切分策略（基于 8192 token 上限）：
+
+| 文档类型 | 策略 | 说明 |
+|---------|------|------|
+| 对话场景（main_story / companion 等）| 场景整体为一个 chunk | 已是最小语义单元，平均 235 字符 |
+| `lore/books.jsonl` | 按 `\n\n` 段落切，overlap 1 段 | 部分书籍超 3000 字，需切分 |
+| `lore/character_stories.jsonl` | 按段落（`\n\n`）切 | 每段独立叙事 |
+| `lore/relic_sets.jsonl` | 整套一个 chunk | 已足够小 |
+| `lore/light_cones.jsonl` | 整条一个 chunk | |
+| `lore/item_lore.jsonl` | 整条一个 chunk（1-3 句）| |
+
+Chunk 数据结构：
+```python
+Chunk(
+    chunk_id  = "chunk_{doc_id}_{index}",
+    doc_id    = str,
+    doc_type  = str,
+    text      = str,   # 实际用于 embedding 的文本
+    metadata  = dict,  # doc_type, chapter_name, mission_title 等，用于过滤
+)
+```
+
+### 7.2 Dense 向量索引（Chroma + DashScope）
+
+**入口**：`python -m starrail_rag.indexing.indexer --backend dashscope`
+
+| 参数 | 值 |
+|------|-----|
+| Embedding 模型 | `text-embedding-v4`（阿里云 DashScope）|
+| 向量维度 | 1024 |
+| 相似度函数 | 余弦相似度 |
+| 向量库 | Chroma（本地持久化，`output/chroma_db/`）|
+| 批次大小 | 10 条/批（DashScope API 上限）|
+| 端点 | `dashscope-intl.aliyuncs.com`（国际版/新加坡）|
+| 环境变量 | `ALI_API_KEY` 或 `DASHSCOPE_API_KEY` |
+| 总 chunk 数 | 7,819 |
+
+**重建命令**：
+```bash
+# 全量重建（清空后重建）
+python -m starrail_rag.indexing.indexer --backend dashscope --reset
+
+# 断点续传（从中断处继续）
+python -m starrail_rag.indexing.indexer --backend dashscope
+
+# 切换到其他 backend
+python -m starrail_rag.indexing.indexer --backend openai    # OpenAI text-embedding-3-small
+python -m starrail_rag.indexing.indexer --backend bge       # 本地 BGE-M3（需 GPU）
+```
+
+### 7.3 Sparse 索引（BM25，待实现）
+
+Dense 检索存在**专有名词语义漂移**问题：查询「帝弓司命」时可能因语义泛化返回所有「星神」相关内容，而不是精确包含「帝弓司命」的 chunk。
+
+解决方案：并行建 BM25 Sparse 索引，用 **Reciprocal Rank Fusion（RRF）** 合并两路结果。
+
+```
+Dense 召回（语义）+ BM25 召回（关键词精确匹配）
+            ↓ RRF 融合
+        最终召回结果
+```
+
+**分词策略**：字符 bigram（无需分词器，天然覆盖所有游戏专有名词）
+- `帝弓司命` → `{帝弓, 弓司, 司命}` bigram token 集合
+- 无 OOV 问题，永远能正确处理新出现的专有名词
+
+**与 ColBERT 的关系**：ColBERT（BGE-M3 第三种检索模式）需要本地运行 BGE-M3，当前因 CPU 性能限制暂不引入。Dense + BM25 混合已覆盖 ColBERT 90% 的场景价值。
+
+### 7.4 向量化相关文件
+
+| 文件 | 说明 |
+|------|------|
+| `starrail_rag/indexing/chunk.py` | Chunk 数据模型 |
+| `starrail_rag/indexing/chunker.py` | Chunk Builder（切分逻辑）|
+| `starrail_rag/indexing/vector_store.py` | VectorStore 接口 + ChromaStore 实现 |
+| `starrail_rag/indexing/indexer.py` | 编排：切分→embedding→写入 Chroma |
+| `output/chroma_db/` | Chroma 持久化数据（不提交 git，可重建）|
+
+| 工作项 | ID | 依赖 |
+|--------|-----|------|
 | 语义层实体去重（BGE-M3） | Step2 | W08 向量化 |
 | Chunk Builder 设计与实现 | W07 | 无 |
 | 向量库索引 | W08 | W07 |
