@@ -94,14 +94,14 @@
     }
   ],
   "stats": {
-    "total_entities": 3507,
-    "with_description": 3487,
-    "total_relations": 7351,
+    "total_entities": 3473,
+    "with_description": 3453,
+    "total_relations": 7338,
     "by_type": {
       "location": 355,
       "faction": 271,
       "character": 993,
-      "concept": 1635,
+      "concept": 1601,
       "aeon": 56,
       "path": 14,
       "event": 119,
@@ -62854,30 +62854,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "克劳迪娅的素材簿（一）",
-      "type": "concept",
-      "description": "一本记录匹诺康尼近期异常事件的素材簿，包含苏乐达炸弹、迷因怪物、被污染的迷钟和恶魔之门等条目。",
-      "attributes": {},
-      "aliases": [
-        "素材簿"
-      ],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "匹诺康尼",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_penacony",
-            "position": "during"
-          },
-          "note": "素材簿记载的事件发生在匹诺康尼"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "苏乐达炸弹",
       "type": "concept",
       "description": "一种由逐梦客发明的恐怖袭击装置，利用噼咔白葡萄汽水和酸梦软糖在苏乐达瓶中混合引发爆炸。",
@@ -63897,18 +63873,6 @@
       "canonical": "仓鼠球骑士外传",
       "type": "concept",
       "description": "一本在匹诺康尼流传的书籍，内容与仓鼠球骑士的冒险故事相关。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "克劳迪娅的素材簿（二）",
-      "type": "concept",
-      "description": "一本记录匹诺康尼各种传闻和怪谈的素材簿，由克劳迪娅编纂。",
       "attributes": {},
       "aliases": [],
       "context_aliases": [],
@@ -91369,7 +91333,7 @@
         }
       ],
       "source_hint": "",
-      "mention_count": 1,
+      "mention_count": 7,
       "disambiguation_note": ""
     },
     {
@@ -94162,50 +94126,6 @@
             "position": "after"
           },
           "note": "开拓者通过回忆梳理出该记录"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "案情简述·其一",
-      "type": "concept",
-      "description": "一份梦境谜题详情记录，由爱德华医生提供，便于重温谜题。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "爱德华医生",
-          "relation": "created_by",
-          "temporal": {
-            "anchor": "arc_main_penacony",
-            "position": "during"
-          },
-          "note": "爱德华医生准备了该便利功能"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "案情简述·其二",
-      "type": "concept",
-      "description": "一份梦境谜题详情记录，由爱德华医生提供，便于重温谜题。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "爱德华医生",
-          "relation": "created_by",
-          "temporal": {
-            "anchor": "arc_main_penacony",
-            "position": "during"
-          },
-          "note": "爱德华医生准备了该便利功能"
         }
       ],
       "source_hint": "",
@@ -98576,48 +98496,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "《小小哈努行动》上篇 第四章",
-      "type": "concept",
-      "description": "克劳克影业发行的限量版卡通故事书，讲述哈努兄弟被变小后拯救美梦小镇的故事。",
-      "attributes": {},
-      "aliases": [
-        "小小哈努行动"
-      ],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "克劳克影业",
-          "relation": "published_by",
-          "temporal": {
-            "anchor": "era_kakavasha",
-            "position": "during"
-          },
-          "note": "由克劳克影业发行"
-        },
-        {
-          "target": "哈努兄弟",
-          "relation": "features",
-          "temporal": {
-            "anchor": "era_kakavasha",
-            "position": "during"
-          },
-          "note": "故事主角为哈努兄弟"
-        },
-        {
-          "target": "美梦小镇",
-          "relation": "set_in",
-          "temporal": {
-            "anchor": "era_kakavasha",
-            "position": "during"
-          },
-          "note": "故事发生地点为美梦小镇"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "谋杀与创造之时",
       "type": "concept",
       "description": "由加拉赫调制的特调饮品，致敬「变革者」与「伟大的复仇」，具有象征意义。",
@@ -101289,68 +101167,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "某个民间科学家的日记 其一",
-      "type": "concept",
-      "description": "一位民间科学家的日记第一部分，记录其科学观察或实验心得。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "某个民间科学家的日记 其二",
-      "type": "concept",
-      "description": "一位民间科学家的日记第二部分，延续其一的内容。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "某个民间科学家的日记 其一",
-          "relation": "is_sequel_of",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "after"
-          },
-          "note": "日记其二为其一的后续篇章"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "某个民间科学家的日记 其三",
-      "type": "concept",
-      "description": "一份由民间科学家撰写的日记，记录其个人观察与思考，内容不详。",
-      "attributes": {},
-      "aliases": [
-        "某个民间科学家的日记 其三"
-      ],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "某个民间科学家的日记 其四",
-      "type": "concept",
-      "description": "一份由民间科学家撰写的日记，记录其个人观察与思考，内容不详。",
-      "attributes": {},
-      "aliases": [
-        "某个民间科学家的日记 其四"
-      ],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "拼接而成的信件",
       "type": "concept",
       "description": "一封由碎片拼接而成的信件，可能包含重要信息或秘密。",
@@ -101443,50 +101259,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "《地底百科：植物和菌类》 其一",
-      "type": "concept",
-      "description": "地底百科系列书籍的第一部分，介绍贝洛伯格下层区的植物和菌类知识。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "event_belo_isolation",
-            "position": "during"
-          },
-          "note": "该书描述的是贝洛伯格下层区的植物和菌类"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《地底百科：植物和菌类》 其二",
-      "type": "concept",
-      "description": "地底百科系列书籍的第二部分，继续介绍贝洛伯格下层区的植物和菌类知识。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "event_belo_isolation",
-            "position": "during"
-          },
-          "note": "该书描述的是贝洛伯格下层区的植物和菌类"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "宝石蜥肉串食谱",
       "type": "concept",
       "description": "一份记录如何制作宝石蜥肉串的食谱，可能源自贝洛伯格下层区。",
@@ -101546,90 +101318,6 @@
       "canonical": "临时调任执行启示",
       "type": "concept",
       "description": "一份关于临时调任执行的通知或启示，具体内容和背景不明。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人来信 其一",
-      "type": "concept",
-      "description": "猎彗人系列信件的第一封，内容涉及猎彗人的活动或经历。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人来信 其二",
-      "type": "concept",
-      "description": "猎彗人系列信件的第二封，内容涉及猎彗人的活动或经历。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人来信 其三",
-      "type": "concept",
-      "description": "猎彗人系列信件的第三封，内容涉及猎彗人的活动或经历。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人宝藏 手稿其一",
-      "type": "concept",
-      "description": "猎彗人宝藏系列手稿的第一份，内容涉及猎彗人宝藏的相关信息。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人宝藏 手稿其二",
-      "type": "concept",
-      "description": "猎彗人宝藏系列手稿的第二部分，记载了猎彗人的相关线索或信息。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人宝藏 手稿其三",
-      "type": "concept",
-      "description": "猎彗人宝藏系列手稿的第三部分，延续记载猎彗人的相关线索或信息。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "猎彗人宝藏 手稿其四",
-      "type": "concept",
-      "description": "猎彗人宝藏系列手稿的第四部分，进一步记载猎彗人的相关线索或信息。",
       "attributes": {},
       "aliases": [],
       "context_aliases": [],
@@ -102283,72 +101971,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "黑塔情诗其一",
-      "type": "concept",
-      "description": "黑塔女士创作的第一首情诗，内容风格独特，体现其个人情感表达。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "黑塔",
-          "relation": "authored_by",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "黑塔是这首情诗的作者"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "黑塔情诗其二",
-      "type": "concept",
-      "description": "黑塔女士创作的第二首情诗，延续其一贯的创作风格。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "黑塔",
-          "relation": "authored_by",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "黑塔是这首情诗的作者"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "黑塔情诗其三",
-      "type": "concept",
-      "description": "黑塔女士创作的第三首情诗，为情诗系列的组成部分。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "黑塔",
-          "relation": "authored_by",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "黑塔是这首情诗的作者"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "讯号转译录：琥珀2157纪40月-43月",
       "type": "event",
       "description": "记录琥珀2157纪40月至43月期间讯号转译内容的文献片段。",
@@ -102743,116 +102365,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "《贝洛伯格的音乐家》卷一",
-      "type": "concept",
-      "description": "记录贝洛伯格音乐家生平与作品的系列书籍的第一卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_belobog",
-            "position": "during"
-          },
-          "note": "书籍内容与贝洛伯格相关"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《贝洛伯格的音乐家》卷二",
-      "type": "concept",
-      "description": "记录贝洛伯格音乐家生平与作品的系列书籍的第二卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_belobog",
-            "position": "during"
-          },
-          "note": "书籍内容与贝洛伯格相关"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《贝洛伯格的音乐家》卷三",
-      "type": "concept",
-      "description": "记录贝洛伯格音乐家生平与作品的系列书籍的第三卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_belobog",
-            "position": "during"
-          },
-          "note": "书籍内容与贝洛伯格相关"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《贝洛伯格的音乐家》卷四",
-      "type": "concept",
-      "description": "记录贝洛伯格音乐家生平与作品的系列书籍的第四卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_belobog",
-            "position": "during"
-          },
-          "note": "书籍内容与贝洛伯格相关"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《贝洛伯格的音乐家》卷五",
-      "type": "concept",
-      "description": "记录贝洛伯格音乐家生平与作品的系列书籍的第五卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "贝洛伯格",
-          "relation": "located_in",
-          "temporal": {
-            "anchor": "arc_main_belobog",
-            "position": "during"
-          },
-          "note": "书籍内容与贝洛伯格相关"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "《贝洛伯格的音乐家》",
       "type": "concept",
       "description": "贝洛伯格流传的一部音乐家传记作品，共六卷，另有真结局版本。",
@@ -102871,7 +102383,7 @@
         }
       ],
       "source_hint": "",
-      "mention_count": 1,
+      "mention_count": 11,
       "disambiguation_note": ""
     },
     {
@@ -103531,82 +103043,6 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "科员们的留言便条其一",
-      "type": "concept",
-      "description": "黑塔空间站科员留下的第一张留言便条，记录日常事务或提醒。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "科员们的留言便条其二",
-      "type": "concept",
-      "description": "黑塔空间站科员留下的第二张留言便条，记录日常事务或提醒。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "科员们的留言便条其三",
-      "type": "concept",
-      "description": "黑塔空间站科员留下的第三张留言便条，记录日常事务或提醒。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "科员们的留言便条其四",
-      "type": "concept",
-      "description": "黑塔空间站科员留下的第四张留言便条，记录日常事务或提醒。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "科员们的留言便条其五",
-      "type": "concept",
-      "description": "黑塔空间站内科员之间流传的第五张留言便条，记录日常交流内容。",
-      "attributes": {},
-      "aliases": [
-        "留言便条其五"
-      ],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "科员们的留言便条其六",
-      "type": "concept",
-      "description": "黑塔空间站内科员之间流传的第六张留言便条，记录日常交流内容。",
-      "attributes": {},
-      "aliases": [
-        "留言便条其六"
-      ],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
       "canonical": "空间站员工餐厅反馈记录表",
       "type": "concept",
       "description": "黑塔空间站员工餐厅收集的反馈记录表，用于收集科员对餐饮的意见。",
@@ -103656,42 +103092,6 @@
       "aliases": [
         "约特伍德体"
       ],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "帕斯卡的日志其一",
-      "type": "concept",
-      "description": "一份名为「帕斯卡的日志其一」的记录文本，内容未知。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "帕斯卡的日志其二",
-      "type": "concept",
-      "description": "一份名为「帕斯卡的日志其二」的记录文本，内容未知。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "帕斯卡的日志其三",
-      "type": "concept",
-      "description": "一份名为「帕斯卡的日志其三」的记录文本，内容未知。",
-      "attributes": {},
-      "aliases": [],
       "context_aliases": [],
       "known_relations": [],
       "source_hint": "",
@@ -104119,9 +103519,9 @@
       "disambiguation_note": ""
     },
     {
-      "canonical": "《帝弓迹躔歌》注疏 其一",
+      "canonical": "《帝弓迹躔歌》注疏",
       "type": "concept",
-      "description": "《帝弓迹躔歌》注疏的第一部分，对帝弓事迹的注解与阐释。",
+      "description": "对《帝弓迹躔歌》的注疏合集，共五部分，阐释帝弓相关事迹。",
       "attributes": {},
       "aliases": [],
       "context_aliases": [],
@@ -104137,107 +103537,7 @@
         }
       ],
       "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《帝弓迹躔歌》注疏 其二",
-      "type": "concept",
-      "description": "《帝弓迹躔歌》注疏的第二部分，对帝弓事迹的注解与阐释。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "《帝弓迹躔歌》注疏",
-          "relation": "part_of",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "是该注疏系列的第二部分"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《帝弓迹躔歌》注疏 其三",
-      "type": "concept",
-      "description": "《帝弓迹躔歌》注疏的第三部分，对帝弓事迹的注解与阐释。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "《帝弓迹躔歌》注疏",
-          "relation": "part_of",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "是该注疏系列的第三部分"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《帝弓迹躔歌》注疏 其四",
-      "type": "concept",
-      "description": "《帝弓迹躔歌》注疏的第四部分，对帝弓事迹的注解与阐释。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "《帝弓迹躔歌》注疏",
-          "relation": "part_of",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "是该注疏系列的第四部分"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《帝弓迹躔歌》注疏 其五",
-      "type": "concept",
-      "description": "《帝弓迹躔歌》注疏的第五部分，对帝弓事迹的注解与阐释。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [
-        {
-          "target": "《帝弓迹躔歌》注疏",
-          "relation": "part_of",
-          "temporal": {
-            "anchor": "unknown",
-            "position": "spanning"
-          },
-          "note": "是该注疏系列的第五部分"
-        }
-      ],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "《帝弓迹躔歌》注疏",
-      "type": "concept",
-      "description": "对《帝弓迹躔歌》的注疏合集，共五部分，阐释帝弓相关事迹。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
+      "mention_count": 11,
       "disambiguation_note": ""
     },
     {
@@ -104359,19 +103659,7 @@
         }
       ],
       "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "奇物管理日志 其三",
-      "type": "concept",
-      "description": "黑塔空间站中记录和管理奇物信息的日志文档，编号为第三卷。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
+      "mention_count": 3,
       "disambiguation_note": ""
     },
     {
@@ -107786,42 +107074,6 @@
       "canonical": "身陷樊笼的往昔",
       "type": "concept",
       "description": "描述完美世界如同牢笼，暗示囚禁与不自由的哲学概念。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "彩排片段•其一",
-      "type": "concept",
-      "description": "舞蹈彩排的指导片段，强调舞者心灵相通与整齐划一。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "彩排片段•其二",
-      "type": "concept",
-      "description": "歌唱彩排的指导片段，强调歌者融为一体与和谐共鸣。",
-      "attributes": {},
-      "aliases": [],
-      "context_aliases": [],
-      "known_relations": [],
-      "source_hint": "",
-      "mention_count": 1,
-      "disambiguation_note": ""
-    },
-    {
-      "canonical": "彩排片段•其三",
-      "type": "concept",
-      "description": "表演彩排的指导片段，强调无我投入与避免做作。",
       "attributes": {},
       "aliases": [],
       "context_aliases": [],
@@ -116062,6 +115314,204 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": ""
+    },
+    {
+      "canonical": "克劳迪娅的素材簿",
+      "type": "concept",
+      "description": "一本记录匹诺康尼近期异常事件的素材簿（系列文档）",
+      "attributes": {},
+      "aliases": [
+        "素材簿"
+      ],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "匹诺康尼",
+          "relation": "located_in",
+          "temporal": {
+            "anchor": "arc_main_penacony",
+            "position": "during"
+          },
+          "note": "素材簿记载的事件发生在匹诺康尼"
+        }
+      ],
+      "source_hint": "由 克劳迪娅的素材簿（一） 等系列文档归并生成",
+      "mention_count": 4
+    },
+    {
+      "canonical": "案情简述",
+      "type": "concept",
+      "description": "一份梦境谜题详情记录（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "爱德华医生",
+          "relation": "created_by",
+          "temporal": {
+            "anchor": "arc_main_penacony",
+            "position": "during"
+          },
+          "note": "爱德华医生准备了该便利功能"
+        }
+      ],
+      "source_hint": "由 案情简述·其一 等系列文档归并生成",
+      "mention_count": 4
+    },
+    {
+      "canonical": "《小小哈努行动》上篇",
+      "type": "concept",
+      "description": "克劳克影业发行的限量版卡通故事书（系列文档）",
+      "attributes": {},
+      "aliases": [
+        "小小哈努行动"
+      ],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "克劳克影业",
+          "relation": "published_by",
+          "temporal": {
+            "anchor": "era_kakavasha",
+            "position": "during"
+          },
+          "note": "由克劳克影业发行"
+        },
+        {
+          "target": "哈努兄弟",
+          "relation": "features",
+          "temporal": {
+            "anchor": "era_kakavasha",
+            "position": "during"
+          },
+          "note": "故事主角为哈努兄弟"
+        },
+        {
+          "target": "美梦小镇",
+          "relation": "set_in",
+          "temporal": {
+            "anchor": "era_kakavasha",
+            "position": "during"
+          },
+          "note": "故事发生地点为美梦小镇"
+        }
+      ],
+      "source_hint": "由 《小小哈努行动》上篇 第四章 等系列文档归并生成",
+      "mention_count": 2
+    },
+    {
+      "canonical": "某个民间科学家的日记",
+      "type": "concept",
+      "description": "一位民间科学家的日记第一部分（系列文档）",
+      "attributes": {},
+      "aliases": [
+        "某个民间科学家的日记 其三",
+        "某个民间科学家的日记 其四"
+      ],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "某个民间科学家的日记 其一",
+          "relation": "is_sequel_of",
+          "temporal": {
+            "anchor": "unknown",
+            "position": "after"
+          },
+          "note": "日记其二为其一的后续篇章"
+        }
+      ],
+      "source_hint": "由 某个民间科学家的日记 其一 等系列文档归并生成",
+      "mention_count": 8
+    },
+    {
+      "canonical": "《地底百科：植物和菌类》",
+      "type": "concept",
+      "description": "地底百科系列书籍的第一部分（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "贝洛伯格",
+          "relation": "located_in",
+          "temporal": {
+            "anchor": "event_belo_isolation",
+            "position": "during"
+          },
+          "note": "该书描述的是贝洛伯格下层区的植物和菌类"
+        }
+      ],
+      "source_hint": "由 《地底百科：植物和菌类》 其一 等系列文档归并生成",
+      "mention_count": 4
+    },
+    {
+      "canonical": "猎彗人宝藏 手稿",
+      "type": "concept",
+      "description": "猎彗人宝藏系列手稿的第一份（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [],
+      "source_hint": "由 猎彗人宝藏 手稿其一 等系列文档归并生成",
+      "mention_count": 8
+    },
+    {
+      "canonical": "黑塔情诗",
+      "type": "concept",
+      "description": "黑塔女士创作的第一首情诗（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [
+        {
+          "target": "黑塔",
+          "relation": "authored_by",
+          "temporal": {
+            "anchor": "unknown",
+            "position": "spanning"
+          },
+          "note": "黑塔是这首情诗的作者"
+        }
+      ],
+      "source_hint": "由 黑塔情诗其一 等系列文档归并生成",
+      "mention_count": 6
+    },
+    {
+      "canonical": "科员们的留言便条",
+      "type": "concept",
+      "description": "黑塔空间站科员留下的第一张留言便条（系列文档）",
+      "attributes": {},
+      "aliases": [
+        "留言便条其五",
+        "留言便条其六"
+      ],
+      "context_aliases": [],
+      "known_relations": [],
+      "source_hint": "由 科员们的留言便条其一 等系列文档归并生成",
+      "mention_count": 12
+    },
+    {
+      "canonical": "帕斯卡的日志",
+      "type": "concept",
+      "description": "一份名为「帕斯卡的日志其一」的记录文本（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [],
+      "source_hint": "由 帕斯卡的日志其一 等系列文档归并生成",
+      "mention_count": 6
+    },
+    {
+      "canonical": "彩排片段",
+      "type": "concept",
+      "description": "舞蹈彩排的指导片段（系列文档）",
+      "attributes": {},
+      "aliases": [],
+      "context_aliases": [],
+      "known_relations": [],
+      "source_hint": "由 彩排片段•其一 等系列文档归并生成",
+      "mention_count": 6
     }
   ]
 }
