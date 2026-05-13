@@ -34,30 +34,33 @@ COLLECTION  = "starrail_lore"
 # Embedding 后端工厂
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _make_dashscope_encoder(batch_size: int = 25) -> Callable[[list[str]], list[list[float]]]:
-    """DashScope text-embedding-v4（OpenAI 兼容接口）。"""
-    from openai import OpenAI
+def _make_dashscope_encoder(batch_size: int = 10) -> Callable[[list[str]], list[list[float]]]:
+    """DashScope text-embedding-v4（支持国际版/中国大陆版）。"""
+    import dashscope
+    from dashscope import TextEmbedding
+
     api_key = os.environ.get("ALI_API_KEY") or os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
         raise RuntimeError("请设置 ALI_API_KEY 或 DASHSCOPE_API_KEY 环境变量")
-    client = OpenAI(
-        api_key=api_key,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    )
+
+    dashscope.api_key = api_key
+    # 国际版（新加坡等）使用 dashscope-intl 端点
+    dashscope.base_http_api_url = "https://dashscope-intl.aliyuncs.com/api/v1"
 
     def encode(texts: list[str]) -> list[list[float]]:
-        # DashScope 单次最多 25 条，超出则分批
         embeddings = []
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
-            resp = client.embeddings.create(
+            resp = TextEmbedding.call(
                 model="text-embedding-v4",
                 input=batch,
-                dimensions=1024,
+                dimension=1024,
             )
-            embeddings.extend([d.embedding for d in resp.data])
+            if resp.status_code != 200:
+                raise RuntimeError(f"DashScope error {resp.status_code}: {resp.message}")
+            embeddings.extend([e["embedding"] for e in resp.output["embeddings"]])
             if i + batch_size < len(texts):
-                time.sleep(0.1)   # 避免触发限流
+                time.sleep(0.05)
         return embeddings
 
     return encode
@@ -105,7 +108,7 @@ BACKEND_FACTORIES = {
 }
 
 BACKEND_CHUNK_SIZES = {
-    "dashscope": 25,    # DashScope API 单批上限
+    "dashscope": 10,    # DashScope API 单批上限 10 条
     "openai":    100,
     "bge":       16,
 }
@@ -134,15 +137,29 @@ def run_indexing(
         store.reset()
 
     already = store.count()
-    if already > 0 and not reset:
-        logger.info("Index already has %d chunks. Use --reset to rebuild.", already)
-        return
+    logger.info("Already indexed: %d chunks", already)
 
     logger.info("Building chunks…")
     builder = ChunkBuilder(output_root=output_root)
-    chunks = builder.build_all()
-    total = len(chunks)
-    logger.info("Total chunks: %d", total)
+    all_chunks = builder.build_all()
+    total = len(all_chunks)
+
+    if reset:
+        chunks = all_chunks
+    elif already > 0:
+        # 断点续传：跳过已索引的 chunk_id
+        logger.info("Resuming — fetching existing IDs…")
+        existing_ids = set(store._col.get(include=[])["ids"])
+        chunks = [c for c in all_chunks if c.chunk_id not in existing_ids]
+        logger.info("Remaining: %d / %d chunks", len(chunks), total)
+    else:
+        chunks = all_chunks
+
+    if not chunks:
+        logger.info("Nothing to index.")
+        return
+
+    logger.info("Indexing %d chunks…", len(chunks))
 
     indexed = 0
     t_start = time.perf_counter()
