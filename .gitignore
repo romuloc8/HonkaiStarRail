@@ -5,3 +5,4 @@ __pycache__/
 # 只忽略日志和临时文件，数据文件正常追踪
 output/*.log
 output/entity_pipeline_raw.jsonl
+output/chroma_db/
