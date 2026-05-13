@@ -1,15 +1,26 @@
 """
-Indexer — 将所有 Chunk 用 BGE-M3 编码并写入 ChromaStore。
+Indexer — 将所有 Chunk 编码并写入 ChromaStore。
+
+支持的 Embedding 后端（通过 --backend 指定）：
+  dashscope  — 阿里云 text-embedding-v4（推荐，中文优化，8192 token）
+  openai     — OpenAI text-embedding-3-small（备选）
+  bge        — 本地 BGE-M3（原定计划，需 GPU 或接受慢速 CPU）
+
+环境变量：
+  DASHSCOPE_API_KEY   — 阿里云 DashScope key
+  OPENAI_API_KEY      — OpenAI key
 
 用法：
-    python -m starrail_rag.indexing.indexer [--reset] [--batch-size 64]
+    python -m starrail_rag.indexing.indexer --backend dashscope [--reset]
 """
 from __future__ import annotations
 
 import argparse
 import logging
+import os
 import time
 from pathlib import Path
+from typing import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -17,76 +28,141 @@ DATA_ROOT   = Path("/workspace")
 OUTPUT_ROOT = DATA_ROOT / "output"
 CHROMA_DIR  = OUTPUT_ROOT / "chroma_db"
 COLLECTION  = "starrail_lore"
-BGE_MODEL   = "BAAI/bge-m3"
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Embedding 后端工厂
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _make_dashscope_encoder(batch_size: int = 25) -> Callable[[list[str]], list[list[float]]]:
+    """DashScope text-embedding-v4（OpenAI 兼容接口）。"""
+    from openai import OpenAI
+    api_key = os.environ.get("DASHSCOPE_API_KEY")
+    if not api_key:
+        raise RuntimeError("DASHSCOPE_API_KEY 未设置")
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+
+    def encode(texts: list[str]) -> list[list[float]]:
+        # DashScope 单次最多 25 条，超出则分批
+        embeddings = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            resp = client.embeddings.create(
+                model="text-embedding-v4",
+                input=batch,
+                dimensions=1024,
+            )
+            embeddings.extend([d.embedding for d in resp.data])
+            if i + batch_size < len(texts):
+                time.sleep(0.1)   # 避免触发限流
+        return embeddings
+
+    return encode
+
+
+def _make_openai_encoder(batch_size: int = 100) -> Callable[[list[str]], list[list[float]]]:
+    """OpenAI text-embedding-3-small（备选）。"""
+    from openai import OpenAI
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY 未设置")
+    client = OpenAI(api_key=api_key)
+
+    def encode(texts: list[str]) -> list[list[float]]:
+        embeddings = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            resp = client.embeddings.create(
+                model="text-embedding-3-small",
+                input=batch,
+            )
+            embeddings.extend([d.embedding for d in resp.data])
+        return embeddings
+
+    return encode
+
+
+def _make_bge_encoder(batch_size: int = 16) -> Callable[[list[str]], list[list[float]]]:
+    """本地 BGE-M3（原定计划，CPU 上约 5 chunk/min）。"""
+    from sentence_transformers import SentenceTransformer
+    model = SentenceTransformer("BAAI/bge-m3")
+
+    def encode(texts: list[str]) -> list[list[float]]:
+        return model.encode(
+            texts, batch_size=batch_size, normalize_embeddings=True, show_progress_bar=False
+        ).tolist()
+
+    return encode
+
+
+BACKEND_FACTORIES = {
+    "dashscope": _make_dashscope_encoder,
+    "openai":    _make_openai_encoder,
+    "bge":       _make_bge_encoder,
+}
+
+BACKEND_CHUNK_SIZES = {
+    "dashscope": 25,    # DashScope API 单批上限
+    "openai":    100,
+    "bge":       16,
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 主流程
+# ──────────────────────────────────────────────────────────────────────────────
 
 def run_indexing(
+    backend: str = "dashscope",
     reset: bool = False,
-    batch_size: int = 64,
     output_root: Path = OUTPUT_ROOT,
     chroma_dir: Path = CHROMA_DIR,
 ) -> None:
-    from sentence_transformers import SentenceTransformer
     from starrail_rag.indexing.chunker import ChunkBuilder
     from starrail_rag.indexing.vector_store import ChromaStore
 
-    # ── 1. 加载 BGE-M3
-    logger.info("Loading BGE-M3 (%s)…", BGE_MODEL)
-    t0 = time.perf_counter()
-    model = SentenceTransformer(BGE_MODEL)
-    logger.info("BGE-M3 loaded in %.1fs", time.perf_counter() - t0)
+    batch_size = BACKEND_CHUNK_SIZES[backend]
+    logger.info("Initializing %s encoder (batch_size=%d)…", backend, batch_size)
+    encode = BACKEND_FACTORIES[backend](batch_size)
 
-    # ── 2. 初始化向量库
     store = ChromaStore(persist_dir=chroma_dir, collection=COLLECTION)
     if reset:
         logger.info("Resetting collection…")
         store.reset()
 
     already = store.count()
-    logger.info("Current index size: %d chunks", already)
     if already > 0 and not reset:
-        logger.info("Index already populated. Use --reset to rebuild.")
+        logger.info("Index already has %d chunks. Use --reset to rebuild.", already)
         return
 
-    # ── 3. 构建 Chunks
-    logger.info("Building chunks from %s…", output_root)
+    logger.info("Building chunks…")
     builder = ChunkBuilder(output_root=output_root)
     chunks = builder.build_all()
-    logger.info("Total chunks to index: %d", len(chunks))
-
-    # ── 4. 批量编码 + 写入
     total = len(chunks)
+    logger.info("Total chunks: %d", total)
+
     indexed = 0
     t_start = time.perf_counter()
 
     for i in range(0, total, batch_size):
         batch = chunks[i : i + batch_size]
         texts = [c.text for c in batch]
-
-        embeddings = model.encode(
-            texts,
-            batch_size=batch_size,
-            normalize_embeddings=True,
-            show_progress_bar=False,
-        ).tolist()
-
+        embeddings = encode(texts)
         store.add(batch, embeddings)
         indexed += len(batch)
-
         elapsed = time.perf_counter() - t_start
-        speed = indexed / elapsed
+        speed = indexed / elapsed if elapsed > 0 else 0
         remaining = (total - indexed) / speed if speed > 0 else 0
         logger.info(
-            "Indexed %d/%d  (%.0f/s, ~%.0fs remaining)",
+            "Indexed %d/%d  (%.1f/s, ~%.0fs remaining)",
             indexed, total, speed, remaining,
         )
 
     elapsed = time.perf_counter() - t_start
-    logger.info(
-        "Indexing done: %d chunks in %.1fs (%.0f chunks/s)",
-        total, elapsed, total / elapsed,
-    )
-    logger.info("Chroma DB persisted at: %s", chroma_dir)
+    logger.info("Done: %d chunks in %.1fs (%.1f/s)", total, elapsed, total / elapsed)
 
 
 if __name__ == "__main__":
@@ -95,8 +171,10 @@ if __name__ == "__main__":
         format="%(asctime)s  %(levelname)-8s  %(message)s",
         datefmt="%H:%M:%S",
     )
-    parser = argparse.ArgumentParser(description="Build vector index with BGE-M3 + Chroma")
-    parser.add_argument("--reset", action="store_true", help="Clear and rebuild index")
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--backend", default="dashscope",
+                        choices=["dashscope", "openai", "bge"],
+                        help="Embedding backend (default: dashscope)")
+    parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
-    run_indexing(reset=args.reset, batch_size=args.batch_size)
+    run_indexing(backend=args.backend, reset=args.reset)
