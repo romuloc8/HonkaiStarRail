@@ -37,9 +37,9 @@ COLLECTION  = "starrail_lore"
 def _make_dashscope_encoder(batch_size: int = 25) -> Callable[[list[str]], list[list[float]]]:
     """DashScope text-embedding-v4（OpenAI 兼容接口）。"""
     from openai import OpenAI
-    api_key = os.environ.get("DASHSCOPE_API_KEY")
+    api_key = os.environ.get("ALI_API_KEY") or os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
-        raise RuntimeError("DASHSCOPE_API_KEY 未设置")
+        raise RuntimeError("请设置 ALI_API_KEY 或 DASHSCOPE_API_KEY 环境变量")
     client = OpenAI(
         api_key=api_key,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
