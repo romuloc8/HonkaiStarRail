@@ -1,7 +1,7 @@
 # 数据处理工作流文档（目标版本）
 
-> 最后更新：2026-05-13
-> 阶段：数据工程完成，向量化准备就绪
+> 最后更新：2026-05-14
+> 阶段：**检索层完成（W07-W13 ✅）**，LightRAG 建图进行中，待评估（W15）
 
 本文档描述**目标工作流**——经过讨论优化后的理想流程，用于未来重建时参考。
 当前实际执行过程及历史优化记录见 `WORKFLOW_OPTIMIZATION_LOG.md`。
@@ -233,13 +233,13 @@ Output JSON: [{"canonical": "verb", "variants": ["v1", "v2"]}]
 
 ## 6. 待完成工作
 
-| 工作项 | ID | 依赖 |
-|--------|-----|------|
-| BM25 Sparse 索引 + HybridRetriever | Step2 | 向量化完成 ✅ |
-| LightRAG 建图 | W10/W11 | W07 ✅, W08 ✅ |
-| 混合检索路由 | W12 | W10 |
-| 生成层接入 | W13 | W12 |
-| 端到端评估 | W15 | W02 ✅（评估集）, W13 |
+| 工作项 | ID | 状态 | 依赖 |
+|--------|-----|------|------|
+| BM25 Sparse 索引 + HybridRetriever | — | ✅ 完成 | W08 ✅ |
+| LightRAG 建图 | W10/W11 | 🔄 进行中（~51%）| W07 ✅, W08 ✅ |
+| 混合检索路由 | W12 | ✅ 完成 | — |
+| LLM 生成层 | W13 | ✅ 完成 | W12 ✅ |
+| 端到端评估 | W15 | ⬜ 待执行 | W02 ✅（评估集）, LightRAG 完成 |
 
 ## 7. 向量化管线（W07/W08）
 
@@ -337,7 +337,97 @@ Dense 召回（语义）+ BM25 召回（关键词精确匹配）
 
 ---
 
-## 关键文件索引
+## 8. LightRAG 知识图谱（W10/W11）
+
+**入口**：`python -m starrail_rag.lightrag_builder`
+**工作目录**：`output/lightrag_db/`（不提交 git，可重建）
+
+### 8.1 设计决策
+
+| 决策 | 说明 |
+|------|------|
+| 处理文档 | 仅对话场景（4,444 chunks），lore 已由 entities.json 覆盖 |
+| Entity hints | 将 3,428 个实体的规范名 + 别称注入 extraction system prompt |
+| LLM | deepseek-chat（实体抽取）|
+| Embedding | DashScope text-embedding-v4（与 Chroma 一致）|
+| LLM cache | 开启，相同 chunk 不重复调用 |
+
+### 8.2 Entity Hints 注入格式
+
+每个实体以一行格式注入 system prompt（最多 4 个别称）：
+```
+卡芙卡（雷电妖姬/戴墨镜的女人）: character
+岚（巡猎星神）（帝弓司命/巡猎之眼）: aeon
+仙舟「罗浮」（仙舟罗浮/罗浮）: location
+```
+
+### 8.3 查询模式
+
+| 模式 | 适用场景 | LightRAG 参数 |
+|------|---------|--------------|
+| `local` | 多跳推理、关系分析 | `QueryParam(mode="local")` |
+| `global` | 主题综合、全局摘要 | `QueryParam(mode="global")` |
+
+### 8.4 重建命令
+
+```bash
+python -m starrail_rag.lightrag_builder
+```
+
+---
+
+## 9. 混合检索路由（W12）+ LLM 生成层（W13）
+
+**入口**：`starrail_rag/retrieval/`
+
+### 9.1 查询路由
+
+```
+用户查询
+    ↓ 规则分类（无 API 成本）
+    ├── SIMPLE  → HybridRetriever（Dense + BM25 RRF）→ deepseek-chat
+    ├── COMPLEX → LightRAG local search               → deepseek-chat
+    └── GLOBAL  → LightRAG global search              → deepseek-reasoner
+
+SIMPLE:  短查询（≤30字）+ 无复杂关键词
+COMPLEX: 含「为什么/原因/历史/关系变化/隐秘」等 13 个模式
+GLOBAL:  含「总结/概述/综合/整体/全部」等
+Fallback: LightRAG 不可用时自动使用 HybridRetriever
+```
+
+### 9.2 使用方式
+
+```bash
+# 交互式
+python3 -m starrail_rag.retrieval.cli
+
+# 单次查询
+python3 -m starrail_rag.retrieval.cli -q "帝弓司命是谁" --verbose
+
+# 强制模式
+python3 -m starrail_rag.retrieval.cli -q "贝洛伯格封闭的原因" -m complex
+```
+
+Python API：
+
+```python
+from starrail_rag.retrieval.query_engine import QueryEngine
+import asyncio
+
+engine = QueryEngine()
+result = asyncio.run(engine.query("帝弓司命是谁"))
+print(result.answer)
+# result.mode, result.sources, result.llm_model 也可访问
+```
+
+### 9.3 关键文件
+
+| 文件 | 说明 |
+|------|------|
+| `starrail_rag/retrieval/router.py` | 查询分类规则 |
+| `starrail_rag/retrieval/query_engine.py` | 统一查询入口 |
+| `starrail_rag/retrieval/cli.py` | CLI 入口 |
+| `starrail_rag/lightrag_builder.py` | LightRAG 初始化 + 文档插入 |
 
 | 文件 | 说明 |
 |------|------|
