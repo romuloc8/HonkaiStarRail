@@ -3,13 +3,15 @@
 
 用法：
     python3 -m starrail_rag.scripts.preview_eval [--difficulty easy|medium|hard] [--n 5]
+    python3 -m starrail_rag.scripts.preview_eval --run --n 3   # 实际运行查询
 """
 import argparse, json, asyncio, os
 from pathlib import Path
 
 EVAL_PATH = Path("starrail_rag/eval_set.json")
 
-def show_questions(difficulty: str | None = None, n: int = 5):
+
+def show_questions(difficulty=None, n=5):
     data = json.load(open(EVAL_PATH))
     questions = data["questions"]
     if difficulty:
@@ -25,14 +27,12 @@ def show_questions(difficulty: str | None = None, n: int = 5):
         print()
 
 
-async def run_and_score(difficulty: str | None = None, n: int = 3):
-    """运行查询并显示答案（对比 answer_key_points）。"""
+async def run_and_score(difficulty=None, n=3):
     from starrail_rag.retrieval.query_engine import QueryEngine
     engine = QueryEngine(
         deepseek_key=os.environ.get("HSR_DEEPSEEK_API_KEY"),
         ali_key=os.environ.get("ALI_API_KEY") or os.environ.get("DASHSCOPE_API_KEY"),
     )
-
     data = json.load(open(EVAL_PATH))
     questions = data["questions"]
     if difficulty:
@@ -49,7 +49,7 @@ async def run_and_score(difficulty: str | None = None, n: int = 3):
         print()
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--difficulty", "-d", choices=["easy", "medium", "hard"], default=None)
     parser.add_argument("--n", type=int, default=5)
@@ -60,3 +60,7 @@ if __name__ == "__main__":
         asyncio.run(run_and_score(args.difficulty, args.n))
     else:
         show_questions(args.difficulty, args.n)
+
+
+if __name__ == "__main__":
+    main()

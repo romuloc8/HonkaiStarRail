@@ -9,8 +9,8 @@ from pathlib import Path
 
 DIRTY_PATTERNS = re.compile(r'<[a-zA-Z]|\{NICKNAME\}|\{LAYOUT_|<unbreak>')
 
+
 def check_file(path: Path) -> int:
-    """返回含残留标签的对话行数。"""
     dirty = 0
     with open(path, encoding="utf-8") as f:
         for line in f:
@@ -22,7 +22,8 @@ def check_file(path: Path) -> int:
                 dirty += 1
     return dirty
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", default="output", help="检查目录（默认 output/）")
     args = parser.parse_args()
@@ -39,3 +40,7 @@ if __name__ == "__main__":
 
     print(f"\n共检查 {total_files} 个文件，{total_dirty} 条含残留标签", end="")
     print(" ✓ 全部干净" if total_dirty == 0 else " → 建议重跑清洗层")
+
+
+if __name__ == "__main__":
+    main()
