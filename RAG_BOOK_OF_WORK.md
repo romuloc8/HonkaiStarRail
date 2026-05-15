@@ -98,38 +98,36 @@
 
 | ID | 工作项 | 状态 | 说明 |
 |----|--------|------|------|
-| W03 | **开拓主线剧情提取（wiki）** | ✅ 完成 | 299 条文档，69,537 行对话，24 章 |
-| W04 | **文本清洗层** | ✅ 完成 | `starrail_rag/core/cleaner.py` — 完整清洗规则（含 {NICKNAME}、标签、分支逻辑） |
-| W05 | **静态 lore 数据提取** | ✅ 完成 | 角色故事、光锥、遗器套装、书籍、道具，共 3,375 条文档 |
-| W05b | **更多任务类型提取（wiki）** | ✅ 完成 | 同行任务、开拓续闻、冒险任务、活动任务，280 条文档，24,764 行 |
-| W06 | **领域词表构建** | ✅ 完成（第一步） | `starrail_rag/tools/domain_lexicon.py` — 126 实体（14 星神、10 命途、89 角色、7 阵营、4 概念）；DeepSeek 扩展待定 |
-| W07 | **文档/Chunk 数据结构定义** | ⬜ 未开始 | 确定向量库 chunk 的 metadata schema 和 chunk size 策略 |
-| W08 | **Layer 1 细粒度文档构建** | ⬜ 未开始 | 生成带 metadata 的原始片段，写入向量库 |
-| W09 | **Layer 2 实体聚合文档构建** | ⬜ 未开始 | 生成角色/地点/阵营聚合文档，作为 LightRAG 建图输入 |
+| W03 | **开拓主线剧情提取（wiki 场景级）** | ✅ 完成 | 2,564 场景，75,495 行，24 章，`output/main_story/` |
+| W04 | **文本清洗层** | ✅ 完成 | `starrail_rag/core/cleaner.py` |
+| W05 | **静态 lore 数据提取** | ✅ 完成 | 角色故事、光锥、遗器、书籍、道具，`output/lore/` |
+| W05b | **更多任务类型提取（wiki 场景级）** | ✅ 完成 | 同行/续闻/冒险/活动，`output/companion/` 等 |
+| W06 | **实体知识图谱生成** | ✅ 完成 | `entity_pipeline.py`（优化版 v2），3,428 实体，7,320 关系 |
+| W07 | **Chunk Builder** | ✅ 完成 | `starrail_rag/indexing/chunker.py`，7,819 chunks |
+| W08 | **向量库索引（Dense + Sparse）** | ✅ 完成 | Chroma + BM25，DashScope text-embedding-v4 |
 
 ### 阶段 2：图构建
 
 | ID | 工作项 | 状态 | 说明 |
 |----|--------|------|------|
-| W10 | **LightRAG 环境搭建** | ⬜ 未开始 | 安装配置 LightRAG，确定 embedding 模型和向量库 |
-| W11 | **LightRAG 建图（核心表）** | ⬜ 未开始 | 将文档注入 LightRAG，领域词表注入 extraction prompt |
-| W12 | **图质量初检** | ⬜ 未开始 | 检查关键实体是否正确识别，检查 T1/T2 问题实际表现 |
+| W10 | **LightRAG 环境搭建** | ✅ 完成 | lightrag-hku 1.4.16，`starrail_rag/lightrag_builder.py` |
+| W11 | **LightRAG 建图** | 🔄 75%（1,669节点/2,368边）| 对话 chunk 注入，entities.json 作 entity hints |
+| W12 | **混合检索路由** | ✅ 完成 | `starrail_rag/retrieval/router.py`，SIMPLE/COMPLEX/GLOBAL |
 
 ### 阶段 3：检索层
 
 | ID | 工作项 | 状态 | 说明 |
 |----|--------|------|------|
-| W13 | **混合检索路由** | ⬜ 未开始 | 简单查询走向量检索；多跳/关联问题走图遍历 |
-| W14 | **生成层接入** | ⬜ 未开始 | 接入 LLM（GPT-4o 或本地 Qwen），注入星铁世界观背景 |
-| W15 | **端到端评估（对比 W02）** | ⬜ 未开始 | 用评估集测试，记录三级问题通过率 |
+| W13 | **LLM 生成层** | ✅ 完成 | `starrail_rag/retrieval/query_engine.py`，deepseek-chat/reasoner |
+| W15 | **端到端评估** | ⬜ 待执行 | 30 题评估集，等 LightRAG 完成后运行 |
 
 ### 阶段 4：迭代优化（待定）
 
 | ID | 工作项 | 状态 | 说明 |
 |----|--------|------|------|
-| W16 | **DeepSeek 实体别称扩展** | ⬜ 待定 | 用 DeepSeek 从语料中发现词表未收录的隐喻性别称 |
-| W17 | **Entity Resolution 优化** | ⬜ 待定 | 根据图质量检查结果做专项优化 |
-| W18 | **升级至 MS GraphRAG** | ⬜ 待定 | 如需更强全局查询能力且成本可接受 |
+| W16 | **语义层实体去重（BGE-M3）** | ⬜ 待定 | 与下次向量化合并执行 |
+| W17 | **时间建模精度提升** | ⬜ 待定 | reliability + raw_evidence 字段，见 PENDING_ISSUES.md |
+| W18 | **Sparse 召回改善（BM25 已有）** | ⬜ 待定 | 如需 ColBERT，需 GPU 运行 BGE-M3 |
 
 ---
 
@@ -137,13 +135,13 @@
 
 | 组件 | 选型 | 状态 |
 |------|------|------|
-| 数据提取框架 | `starrail_rag`（自建） | ✅ 运行中 |
-| GraphRAG 框架 | LightRAG | ⬜ 待安装 |
-| Embedding 模型 | BGE-M3 或 OpenAI（待定） | ⬜ 待确认 |
-| 向量库 | Chroma（本地）或 Qdrant | ⬜ 待确认 |
-| LLM（生成） | GPT-4o 或 Qwen2.5-72B | ⬜ 待确认 |
+| 数据提取框架 | `starrail_rag`（自建） | ✅ |
+| GraphRAG 框架 | LightRAG（lightrag-hku 1.4.16） | ✅ 建图中 75% |
+| Embedding 模型 | DashScope text-embedding-v4（dense）+ BM25 bigram（sparse）| ✅ |
+| 向量库 | Chroma（本地，7,819 chunks）| ✅ |
+| LLM（生成） | DeepSeek-chat（简单/提取）+ DeepSeek-reasoner（复杂推理）| ✅ |
+| 实体知识图谱 | `output/entities.json`（3,428 实体，temporal anchors）| ✅ |
 | 开发语言 | Python 3.12 | ✅ |
-| 图数据库 | LightRAG 内置 | ⬜ |
 
 ---
 
@@ -155,7 +153,13 @@
 | 2026-05-11 | 数据分级 | Config/ 和 Story/ 执行图为次要数据；遗器/光锥/书籍 lore 密度最高 |
 | 2026-05-11 | 方案 A vs B | 两者各有局限，采用分层混合策略（ADR-002） |
 | 2026-05-11 | 架构选型 | LightRAG 为起点（ADR-003） |
-| 2026-05-11 | 游戏数据对话不完整 | 发现游戏 dump 缺失 .playable 台词，改用 wiki 作为对话来源（ADR-005） |
-| 2026-05-11 | 数据清洗规范 | {NICKNAME}→开拓者；性别条件取少女；分支对话按响应是否一致决定合并或平行展示（ADR-006） |
-| 2026-05-11 | 实体消歧策略 | 不修改原文；建领域词表注入 LightRAG prompt；第一步手工+半自动，第二步 DeepSeek（ADR-007） |
-| 2026-05-11 | 领域词表第一步完成 | 126 个实体，含 14 星神别称（帝弓司命=巡猎星神岚，大欢喜=欢愉星神阿哈，钟表匠=同谐星神希佩等） |
+| 2026-05-11 | 游戏数据对话不完整 | 改用 wiki 作为对话来源（ADR-005） |
+| 2026-05-11 | 数据清洗规范 | {NICKNAME}→开拓者；分支对话按响应是否一致决定合并或平行展示（ADR-006） |
+| 2026-05-11 | 实体消歧策略 | 不修改原文；建领域词表注入 LightRAG prompt；DeepSeek 扩展（ADR-007） |
+| 2026-05-12 | Embedding 模型选型 | DashScope text-embedding-v4；8192 token，优化中文，BGE-M3 CPU 太慢放弃 |
+| 2026-05-12 | Sparse 检索 | BM25 字符 bigram，用 RRF 与 Dense 融合，作为 ColBERT 替代 |
+| 2026-05-13 | 实体管线优化（v2） | 游戏属性作 DeepSeek 提取上下文；DeepSeek 直接分类 alias 类型 |
+| 2026-05-13 | 时间建模粒度 | 当前 15 named anchors 已够用；future：reliability + raw_evidence 字段 |
+| 2026-05-13 | LightRAG 策略 | entities.json 注入作 hints；LightRAG 自建对话关系图；不重复提取 lore |
+| 2026-05-14 | HybridRetriever + QueryEngine | SIMPLE→Chroma+BM25；COMPLEX/GLOBAL→LightRAG；生成层接 deepseek-chat/reasoner |
+| 2026-05-15 | 脚本模块化修复 | scripts/__init__.py 不再自动导入各脚本，改用按需运行，避免 import 时触发 API 调用 |

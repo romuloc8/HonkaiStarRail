@@ -1,7 +1,7 @@
 # 待解决问题与解决方案记录
 
-> 最后更新：2026-05-14
-> 状态：向量化完成（W07/W08 ✅），进入 LightRAG 建图阶段
+> 最后更新：2026-05-15
+> 状态：向量化完成（W07/W08 ✅），LightRAG 建图进行中（75%），检索/生成层完成
 
 ---
 
@@ -341,3 +341,5 @@ DeepSeek 注释：「此处可能指代某场导致文明消亡的灾变，时�
 | Sparse 向量索引 | BM25 + 字符 bigram，HybridRetriever（RRF）| 2026-05-13 |
 | 对话数据颗粒度优化 | 重新爬取，wiki 场景级（2,564 场景），按章节分文件 | 2026-05-13 |
 | 文件结构规范化 | output/main_story/ companion/ continuance/ adventure/ activity/ lore/ | 2026-05-13 |
+| 检索路由 + LLM 生成层 | SIMPLE→HybridRetriever；COMPLEX/GLOBAL→LightRAG；deepseek-chat/reasoner | 2026-05-14 |
+| scripts/__init__.py 导入副作用 | 移除自动导入，各脚本顶层逻辑包入 main() | 2026-05-15 |
