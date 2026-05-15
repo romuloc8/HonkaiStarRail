@@ -1,21 +1,29 @@
 """
-统一实体生成管线。
+统一实体生成管线（优化版 v2）。
 
-替代原来分散的三个脚本（domain_lexicon.py / entity_extractor.py / alias_filter.py），
-一次完成：种子提取 → DeepSeek 丰富 → 别称过滤 → 输出 entities.json
+优化记录（见 WORKFLOW_OPTIMIZATION_LOG.md）：
+  Phase 1 → 属性表上下文注入：不再生成种子实体，仅从 AvatarConfig 等提取
+            path/element/rarity 属性表，作为 Phase 2 DeepSeek prompt 的背景知识
+  Phase 2 → 一体化提取：description + attributes + 别称分类 + 关系，一次完成
+            别称分类（全局唯一 vs 上下文相关）由 DeepSeek 直接判断，不再依赖启发式规则
+  Phase 3 → 去除：无需合并种子与 DeepSeek 结果
+  Phase 4 → 去除：别称过滤已并入 Phase 2 prompt schema
 
-流程：
-  Phase 1  从游戏结构化数据提取种子实体（角色、星神、命途）
-  Phase 2  用 DeepSeek 处理 lore 文本，提取实体描述 + 别称 + 带时间锚点的关系
-  Phase 3  合并种子与 DeepSeek 结果，去重，填充属性
-  Phase 4  别称过滤（全局唯一 vs 上下文相关）
-  Phase 5  输出 output/entities.json
+数据流：
+  游戏属性表（AvatarConfig 等）→ 属性上下文
+        ↓ 注入 system prompt
+  lore 文本批次 → deepseek-chat → 实体列表（含 attributes / aliases / context_aliases / relations）
+        ↓
+  实体去重（全部名称 → deepseek-chat）
+        ↓
+  entities.json
 
 运行：
-    python -m starrail_rag.tools.entity_pipeline [--resume] [--phases 1,2,3,4,5]
+    python -m starrail_rag.tools.entity_pipeline [--phases 1,2,3,4] [--resume]
 
 环境变量：
     HSR_DEEPSEEK_API_KEY
+    ALI_API_KEY（或 DASHSCOPE_API_KEY）
 """
 
 from __future__ import annotations
@@ -28,11 +36,9 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import Callable
 
 from openai import OpenAI
-
-from starrail_rag.tools.temporal_anchors import ANCHOR_BY_ID, ANCHOR_PROMPT_HINT, TEMPORAL_ANCHORS
 
 logger = logging.getLogger(__name__)
 
@@ -41,41 +47,9 @@ OUTPUT_DIR = DATA_ROOT / "output"
 ENTITIES_PATH = OUTPUT_DIR / "entities.json"
 RAW_EXTRACTIONS_PATH = OUTPUT_DIR / "entity_pipeline_raw.jsonl"
 
-# -----------------------------------------------------------------------
-# 实体 Schema
-# -----------------------------------------------------------------------
-
-def empty_entity(canonical: str, entity_type: str) -> dict:
-    return {
-        "canonical": canonical,
-        "type": entity_type,
-        "description": "",
-        "attributes": {},
-        "aliases": [],
-        "context_aliases": [],      # [{"text": str, "context": str}]
-        "known_relations": [],      # [{"target", "relation", "temporal", "note"}]
-        "source_hint": "",
-        "mention_count": 0,
-        "disambiguation_note": "",  # 只在同名多实体时填写
-    }
-
-
-def empty_relation(target: str, relation: str,
-                   anchor: str = "unknown", position: str = "during",
-                   note: str = "") -> dict:
-    return {
-        "target": target,
-        "relation": relation,
-        "temporal": {
-            "anchor": anchor,
-            "position": position,       # before | during | after | spanning
-        },
-        "note": note,
-    }
-
-# -----------------------------------------------------------------------
-# Phase 1: 种子实体（游戏结构化数据）
-# -----------------------------------------------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 1：从游戏数据提取属性表（不生成实体，仅作为上下文）
+# ──────────────────────────────────────────────────────────────────────────────
 
 _BASE_TYPE_ZH = {
     "Knight": "存护", "Rogue": "巡猎", "Mage": "智识",
@@ -90,11 +64,6 @@ _RARITY_ZH = {
     "CombatPowerAvatarRarityType4": "4星",
     "CombatPowerAvatarRarityType5": "5星",
 }
-_ICON_TO_PATH_EN = {
-    "Knight": "Knight", "Memory": "Memory", "Warrior": "Warrior",
-    "Rogue": "Rogue", "Mage": "Mage", "Shaman": "Shaman",
-    "Warlock": "Warlock", "Priest": "Priest", "Elation": "Elation",
-}
 
 
 def _resolve(hash_val: int | None, textmap: dict) -> str:
@@ -107,114 +76,98 @@ def _resolve(hash_val: int | None, textmap: dict) -> str:
     return textmap.get(str(signed), "")
 
 
-def _resolve_field(field: Any, textmap: dict) -> str:
-    if isinstance(field, dict):
-        return _resolve(field.get("Hash"), textmap)
-    return ""
-
-
-def extract_seeds(data_root: Path) -> dict[str, dict]:
+def extract_game_attributes(data_root: Path = DATA_ROOT) -> str:
     """
-    从游戏 JSON 提取种子实体，返回 canonical → entity dict。
+    从游戏结构化数据提取角色/星神/命途的属性，
+    返回可直接注入 prompt 的文本格式。
+
+    格式：角色名: path=命途 element=属性 rarity=稀有度
     """
     with open(data_root / "TextMap" / "TextMapCHS.json", encoding="utf-8") as f:
         textmap = json.load(f)
 
-    seeds: dict[str, dict] = {}
+    lines = []
 
-    # ── 命途 ──────────────────────────────────────────────────────────
+    # 命途
     with open(data_root / "ExcelOutput" / "AvatarBaseType.json", encoding="utf-8") as f:
         base_types = json.load(f)
-
     path_en_to_zh: dict[str, str] = {}
     for bt in base_types:
         path_en = bt.get("ID", "")
-        path_zh = _resolve_field(bt.get("BaseTypeText"), textmap)
-        if not path_zh or path_zh == "通用":
-            continue
-        path_en_to_zh[path_en] = path_zh
-        e = empty_entity(path_zh, "path")
-        e["attributes"]["path_en"] = path_en
-        e["source_hint"] = "AvatarBaseType.json"
-        e["mention_count"] = 1
-        seeds[path_zh] = e
+        name_field = bt.get("BaseTypeText")
+        path_zh = _resolve(name_field.get("Hash") if isinstance(name_field, dict) else 0, textmap)
+        if path_zh and path_zh != "通用":
+            path_en_to_zh[path_en] = path_zh
 
-    # ── 星神 ──────────────────────────────────────────────────────────
-    with open(data_root / "ExcelOutput" / "RogueAeonDisplay.json", encoding="utf-8") as f:
-        aeon_display = json.load(f)
-
-    for ad in aeon_display:
-        aeon_name = _resolve_field(ad.get("RogueAeonName"), textmap)
-        path_name2 = _resolve_field(ad.get("RogueAeonPathName2"), textmap)
-        if not aeon_name:
-            continue
-        icon_path = ad.get("AeonIcon", "")
-        path_en = next((k for k in _ICON_TO_PATH_EN if k in icon_path), "")
-        path_zh = path_en_to_zh.get(path_en, "") or path_name2
-
-        canonical = f"{aeon_name}（{path_zh}星神）" if path_zh else aeon_name
-        e = empty_entity(canonical, "aeon")
-        e["attributes"]["aeon_name"] = aeon_name
-        e["attributes"]["path"] = path_zh
-        e["source_hint"] = "RogueAeonDisplay.json"
-        e["mention_count"] = 1
-        seeds[canonical] = e
-
-    # ── 可玩角色 ──────────────────────────────────────────────────────
+    # 可玩角色属性
     with open(data_root / "ExcelOutput" / "AvatarConfig.json", encoding="utf-8") as f:
         avatars = json.load(f)
-
     for av in avatars:
         if not av.get("Release"):
             continue
-        name = _resolve_field(av.get("AvatarName"), textmap)
-        full_name = _resolve_field(av.get("AvatarFullName"), textmap)
+        name_field = av.get("AvatarName", {})
+        name = _resolve(name_field.get("Hash") if isinstance(name_field, dict) else 0, textmap)
         if not name:
             continue
-        e = empty_entity(name, "character")
-        e["attributes"] = {
-            "avatar_id": av["AvatarID"],
-            "path": _BASE_TYPE_ZH.get(av.get("AvatarBaseType", ""), ""),
-            "element": _DAMAGE_TYPE_ZH.get(av.get("DamageType", ""), ""),
-            "rarity": _RARITY_ZH.get(av.get("Rarity", ""), ""),
-        }
-        if full_name and full_name != name:
-            e["aliases"].append(full_name)
-        e["source_hint"] = "AvatarConfig.json"
-        e["mention_count"] = 1
-        seeds[name] = e
+        path_en = av.get("AvatarBaseType", "")
+        path_zh = path_en_to_zh.get(path_en, "")
+        element = _DAMAGE_TYPE_ZH.get(av.get("DamageType", ""), "")
+        rarity = _RARITY_ZH.get(av.get("Rarity", ""), "")
+        parts = []
+        if path_zh:
+            parts.append(f"命途={path_zh}")
+        if element:
+            parts.append(f"属性={element}")
+        if rarity:
+            parts.append(f"稀有度={rarity}")
+        if parts:
+            lines.append(f"{name}: {' '.join(parts)}")
 
-    logger.info("Phase 1: %d seed entities extracted", len(seeds))
-    return seeds
+    # 星神
+    with open(data_root / "ExcelOutput" / "RogueAeonDisplay.json", encoding="utf-8") as f:
+        aeon_display = json.load(f)
+    for ad in aeon_display:
+        aeon_field = ad.get("RogueAeonName", {})
+        aeon_name = _resolve(aeon_field.get("Hash") if isinstance(aeon_field, dict) else 0, textmap)
+        path_field = ad.get("RogueAeonPathName2", {})
+        path_zh = _resolve(path_field.get("Hash") if isinstance(path_field, dict) else 0, textmap)
+        if aeon_name and path_zh:
+            lines.append(f"{aeon_name}: 类型=星神 命途={path_zh}")
 
-# -----------------------------------------------------------------------
-# Phase 2: DeepSeek 文本丰富
-# -----------------------------------------------------------------------
+    logger.info("Game attributes extracted: %d entries", len(lines))
+    return "\n".join(lines)
 
-SYSTEM_PROMPT = f"""你是崩坏：星穹铁道世界观的专业分析师，负责构建知识图谱。
 
-你的任务是从游戏文本中提取实体，并为每个实体生成：
-1. description（简短客观描述，说明该实体是什么，20-50字）
-2. aliases（全局唯一别称，任何地方出现都指向此实体）
-3. relations（与其他实体的关系，需标注时间锚点）
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 2：DeepSeek 一体化提取
+# ──────────────────────────────────────────────────────────────────────────────
 
-实体类型：
-  character | aeon | path | faction | location | event | concept
+SYSTEM_PROMPT_TEMPLATE = """你是崩坏：星穹铁道世界观的专业分析师，负责构建知识图谱。
 
-时间锚点（relations 中必须使用下列 id 之一）：
-{ANCHOR_PROMPT_HINT}
+【游戏内已知实体属性（请直接使用这些属性，不要重复创建）】
+{game_attributes}
 
-关系的 position 取值：
-  before   — 发生在该锚点之前
-  during   — 发生在该锚点期间
-  after    — 发生在该锚点之后
-  spanning — 跨越该锚点，或持续整个纪元
+【任务】
+从游戏文本中提取命名实体，为每个实体生成：
+1. canonical（规范名称）
+2. type：character | aeon | path | faction | location | event | concept
+3. description：20-50字简洁描述
+4. attributes：结合上方属性表填写 path/element/rarity（已知的直接填，未知留空）
+5. aliases：【全局唯一别称】——任何上下文中出现都指向此实体（如「丹恒•腾荒」）
+6. context_aliases：【上下文相关别称】——只在特定文本中才指向此实体
+   格式：{{"text": "别称", "context": "适用场景"}}
+   规则：代词（他/她/祂）、泛化词（少年/将军/医生）均为 context_aliases
+7. relations：与其他实体的关系，需标注时间锚点
 
-注意：
-- aliases 只包含在文本中明确出现的独特称谓（不要泛化词如「少年」「她」「将军」）
-- relations 只包含文本中有明确依据的关系（不要推测）
-- 不同实体之间若有关系，两方都要列出（互相引用）
-"""
+【时间锚点 ID（relations 中必须使用）】
+epoch_titan, epoch_xianzhou_founding, event_jimu, event_buliren,
+event_yinyue, event_belo_isolation, era_kakavasha,
+arc_main_110, arc_main_belobog, arc_main_luofu, arc_main_penacony,
+arc_main_amphoreus, arc_main_paradise, arc_post_main, unknown
+
+position: before | during | after | spanning
+
+【注意】relations 只包含文本中有明确依据的关系，不要推测。"""
 
 USER_PROMPT_TEMPLATE = """请从以下【{count}段】崩坏：星穹铁道文本中提取实体信息。
 
@@ -226,14 +179,16 @@ USER_PROMPT_TEMPLATE = """请从以下【{count}段】崩坏：星穹铁道文�
   "canonical": "规范名称",
   "type": "类型",
   "description": "20-50字描述",
-  "aliases": ["唯一别称1", "唯一别称2"],
+  "attributes": {{"path": "", "element": "", "rarity": ""}},
+  "aliases": ["全局唯一别称"],
+  "context_aliases": [{{"text": "别称", "context": "适用场景"}}],
   "relations": [
     {{
-      "target": "目标实体canonical名",
-      "relation": "关系动词（英文，如 member_of / leads / located_in）",
+      "target": "目标实体",
+      "relation": "英文动词",
       "temporal_anchor": "锚点id",
       "temporal_position": "before|during|after|spanning",
-      "note": "中文补充说明（可空）"
+      "note": "说明（可空）"
     }}
   ]
 }}
@@ -283,7 +238,12 @@ def _build_batches(docs: list[dict]) -> list[list[dict]]:
     return batches
 
 
-def _call_deepseek(client: OpenAI, batch: list[dict], model: str = "deepseek-chat") -> list[dict]:
+def _call_deepseek(
+    client: OpenAI,
+    batch: list[dict],
+    system_prompt: str,
+    model: str = "deepseek-chat",
+) -> list[dict]:
     texts = []
     for i, doc in enumerate(batch, 1):
         text = _doc_to_text(doc)
@@ -299,7 +259,7 @@ def _call_deepseek(client: OpenAI, batch: list[dict], model: str = "deepseek-cha
             resp = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ],
                 max_tokens=MAX_OUTPUT_TOKENS,
@@ -310,7 +270,7 @@ def _call_deepseek(client: OpenAI, batch: list[dict], model: str = "deepseek-cha
             if start == -1 or end == 0:
                 return []
             return json.loads(content[start:end])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             wait = 2 ** attempt
             logger.debug("API error (attempt %d): %s, retry in %ds", attempt + 1, exc, wait)
             time.sleep(wait)
@@ -319,14 +279,17 @@ def _call_deepseek(client: OpenAI, batch: list[dict], model: str = "deepseek-cha
 
 def run_deepseek_extraction(
     doc_paths: list[Path],
+    game_attributes: str,
     model: str = "deepseek-chat",
     resume: bool = True,
 ) -> list[dict]:
-    """批量处理文档，返回原始提取结果列表。"""
+    """Phase 2：对 lore 文档批量运行 DeepSeek 提取。"""
     api_key = os.environ.get("HSR_DEEPSEEK_API_KEY")
     if not api_key:
         raise RuntimeError("HSR_DEEPSEEK_API_KEY 未设置")
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(game_attributes=game_attributes)
 
     docs: list[dict] = []
     for path in doc_paths:
@@ -337,10 +300,10 @@ def run_deepseek_extraction(
                 line = line.strip()
                 if line:
                     docs.append(json.loads(line))
-    logger.info("Phase 2: %d documents loaded", len(docs))
+    logger.info("Loaded %d documents", len(docs))
 
     batches = _build_batches(docs)
-    logger.info("Phase 2: %d batches to process", len(batches))
+    logger.info("Built %d batches", len(batches))
 
     already_done = 0
     all_raw: list[dict] = []
@@ -359,46 +322,49 @@ def run_deepseek_extraction(
             if i < already_done:
                 continue
             logger.info("Batch %d/%d (%d docs)...", i + 1, len(batches), len(batch))
-            entities = _call_deepseek(client, batch, model=model)
-            record = {"batch_idx": i, "doc_count": len(batch),
-                      "entity_count": len(entities), "entities": entities}
+            entities = _call_deepseek(client, batch, system_prompt, model=model)
+            record = {
+                "batch_idx": i,
+                "doc_count": len(batch),
+                "entity_count": len(entities),
+                "entities": entities,
+            }
             raw_f.write(json.dumps(record, ensure_ascii=False) + "\n")
             raw_f.flush()
             all_raw.extend(entities)
             logger.info("  → %d entities", len(entities))
             time.sleep(REQUEST_DELAY)
 
-    logger.info("Phase 2: %d raw entities extracted total", len(all_raw))
+    logger.info("Extraction done: %d raw entities", len(all_raw))
     return all_raw
 
-# -----------------------------------------------------------------------
-# Phase 3: 合并种子 + DeepSeek 结果
-# -----------------------------------------------------------------------
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 3：合并去重（send all names to DeepSeek）
+# ──────────────────────────────────────────────────────────────────────────────
 
 def _normalize(name: str) -> str:
     return name.strip().lower()
 
 
 def _validate_anchor(anchor_id: str) -> str:
-    """若 anchor 不在已知列表中，回退到 unknown。"""
-    return anchor_id if anchor_id in ANCHOR_BY_ID else "unknown"
+    VALID_ANCHORS = {
+        "epoch_titan", "epoch_xianzhou_founding", "event_jimu", "event_buliren",
+        "event_yinyue", "event_belo_isolation", "era_kakavasha",
+        "arc_main_110", "arc_main_belobog", "arc_main_luofu", "arc_main_penacony",
+        "arc_main_amphoreus", "arc_main_paradise", "arc_post_main", "unknown",
+    }
+    return anchor_id if anchor_id in VALID_ANCHORS else "unknown"
 
 
-def merge(seeds: dict[str, dict], raw_extractions: list[dict]) -> list[dict]:
+def deduplicate_entities(raw_entities: list[dict]) -> list[dict]:
     """
-    合并种子实体和 DeepSeek 提取结果：
-    - 种子实体提供结构化属性（命途/属性/稀有度）
-    - DeepSeek 结果提供 description、aliases、relations
-    - 按 canonical 名合并，种子字段不被覆盖（优先级：种子 > DeepSeek）
+    合并同名实体（canonical 名相同的合并 aliases / context_aliases / relations），
+    按 mention_count 排序。
     """
     merged: dict[str, dict] = {}
 
-    # 先放入种子
-    for canonical, seed in seeds.items():
-        merged[_normalize(canonical)] = dict(seed)
-
-    # 合并 DeepSeek 提取
-    for raw in raw_extractions:
+    for raw in raw_entities:
         if not isinstance(raw, dict):
             continue
         canonical = str(raw.get("canonical", "")).strip()
@@ -407,36 +373,50 @@ def merge(seeds: dict[str, dict], raw_extractions: list[dict]) -> list[dict]:
         key = _normalize(canonical)
 
         if key not in merged:
-            # 新发现的实体（不在种子里）
-            e = empty_entity(canonical, raw.get("type", "concept"))
+            e = {
+                "canonical": canonical,
+                "type": raw.get("type", "concept"),
+                "description": raw.get("description", "").strip(),
+                "attributes": raw.get("attributes") or {},
+                "aliases": [],
+                "context_aliases": [],
+                "known_relations": [],
+                "source_hint": raw.get("source_hint", "").strip(),
+                "mention_count": 0,
+                "disambiguation_note": "",
+            }
             merged[key] = e
         else:
-            # 与种子合并：修正 canonical 大小写为种子版本
-            canonical = merged[key]["canonical"]
+            e = merged[key]
 
-        e = merged[key]
         e["mention_count"] += 1
 
-        # description：优先保留非空的，DeepSeek 可以填充种子的空值
+        # description（取第一个非空）
         if not e["description"] and raw.get("description"):
             e["description"] = raw["description"].strip()
 
-        # source_hint：补充
-        if not e["source_hint"] and raw.get("source_hint"):
-            e["source_hint"] = raw["source_hint"].strip()
+        # attributes（填空字段）
+        for attr_key, attr_val in (raw.get("attributes") or {}).items():
+            if attr_val and not e["attributes"].get(attr_key):
+                e["attributes"][attr_key] = attr_val
 
-        # aliases：合并去重
+        # aliases（全局唯一，去重）
         existing_aliases = set(e["aliases"])
         for alias in raw.get("aliases", []):
             alias = alias.strip()
             if alias and alias != canonical and alias not in existing_aliases:
-                existing_aliases.add(alias)
                 e["aliases"].append(alias)
+                existing_aliases.add(alias)
 
-        # relations：合并，校验 temporal anchor
-        existing_relation_keys = {
-            (r["target"], r["relation"]) for r in e["known_relations"]
-        }
+        # context_aliases（去重）
+        existing_ctx = {a["text"] for a in e["context_aliases"]}
+        for ca in raw.get("context_aliases", []):
+            if isinstance(ca, dict) and ca.get("text") not in existing_ctx:
+                e["context_aliases"].append(ca)
+                existing_ctx.add(ca["text"])
+
+        # known_relations（去重）
+        existing_rels = {(r["target"], r["relation"]) for r in e["known_relations"]}
         for rel in raw.get("relations", []):
             if not isinstance(rel, dict):
                 continue
@@ -444,115 +424,42 @@ def merge(seeds: dict[str, dict], raw_extractions: list[dict]) -> list[dict]:
             relation = str(rel.get("relation", "")).strip()
             if not target or not relation:
                 continue
-            if (target, relation) in existing_relation_keys:
+            if (target, relation) in existing_rels:
                 continue
             anchor = _validate_anchor(rel.get("temporal_anchor", "unknown"))
             position = rel.get("temporal_position", "during")
             if position not in ("before", "during", "after", "spanning"):
                 position = "during"
-            e["known_relations"].append(empty_relation(
-                target=target,
-                relation=relation,
-                anchor=anchor,
-                position=position,
-                note=str(rel.get("note", "")).strip(),
-            ))
-            existing_relation_keys.add((target, relation))
+            e["known_relations"].append({
+                "target": target,
+                "relation": relation,
+                "temporal": {"anchor": anchor, "position": position},
+                "note": str(rel.get("note", "")).strip(),
+            })
+            existing_rels.add((target, relation))
 
     result = sorted(merged.values(), key=lambda x: -x["mention_count"])
-    logger.info("Phase 3: %d merged entities", len(result))
+    logger.info("Deduplicated: %d unique entities", len(result))
     return result
 
-# -----------------------------------------------------------------------
-# Phase 4: 别称过滤
-# -----------------------------------------------------------------------
 
-PRONOUNS = frozenset([
-    "他", "她", "祂", "它", "你", "我", "吾",
-    "他们", "她们", "它们", "你们", "我们",
-    "那人", "那位", "此人", "这人", "那他", "那她",
-])
-GENERIC_NOUNS = frozenset([
-    "少年", "少女", "女孩", "男孩", "小孩", "孩子",
-    "女人", "男人", "老人", "老者", "长者",
-    "女子", "男子", "小姑娘", "小女孩", "小男孩", "小伙子",
-    "年轻人", "年轻女子", "年轻男子", "青年",
-    "学者", "商人", "旅人", "旅者", "战士", "武者", "剑士",
-    "骑士", "信使", "诗人", "医者", "医师", "猎人",
-    "外来者", "外来客", "异乡人", "访客", "主角",
-    "父亲", "母亲", "儿子", "女儿", "兄弟", "姐妹",
-    "哥哥", "弟弟", "姐姐", "妹妹", "丈夫", "妻子",
-    "朋友", "同伴", "伙伴", "搭档", "导师", "弟子",
-    "将军", "大人", "大人物", "统领", "首领", "领袖",
-    "船长", "队长", "先生", "女士", "小姐", "夫人",
-    "大哥", "大姐", "老大", "老师", "教授", "博士",
-    "守卫", "卫士", "护卫", "侍卫", "判官",
-])
-RELIABLE_PATTERNS = [
-    re.compile(r'.{2,}将军$'),
-    re.compile(r'.{2,}大人$'),
-    re.compile(r'.{2,}统领$'),
-    re.compile(r'#\d+'),
-    re.compile(r'^AR-\d+'),
-    re.compile(r'[•·]'),
-    re.compile(r'「.+」'),
-]
-
-
-def _classify_alias(alias: str, canonical: str) -> str:
-    alias = alias.strip()
-    if not alias or alias == canonical:
-        return "drop"
-    if alias in PRONOUNS:
-        return "drop"
-    if alias in GENERIC_NOUNS:
-        return "context"
-    for pat in RELIABLE_PATTERNS:
-        if pat.search(alias):
-            return "keep"
-    if re.fullmatch(r'[\u4e00-\u9fff]{1,2}', alias):
-        return "context"
-    return "keep"
-
-
-def filter_aliases(entities: list[dict]) -> list[dict]:
-    stats = {"kept": 0, "moved": 0, "dropped": 0}
-    for e in entities:
-        new_aliases, new_ctx = [], list(e.get("context_aliases", []))
-        for alias in e.get("aliases", []):
-            d = _classify_alias(alias, e["canonical"])
-            if d == "keep":
-                new_aliases.append(alias)
-                stats["kept"] += 1
-            elif d == "context":
-                if not any(a["text"] == alias for a in new_ctx):
-                    new_ctx.append({"text": alias, "context": e.get("source_hint", "")})
-                stats["moved"] += 1
-            else:
-                stats["dropped"] += 1
-        e["aliases"] = new_aliases
-        e["context_aliases"] = new_ctx
-    logger.info(
-        "Phase 4: aliases — kept=%d moved_to_context=%d dropped=%d",
-        stats["kept"], stats["moved"], stats["dropped"],
-    )
-    return entities
-
-# -----------------------------------------------------------------------
-# Phase 5: 序列化输出
-# -----------------------------------------------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 4：序列化输出
+# ──────────────────────────────────────────────────────────────────────────────
 
 def save_entities(entities: list[dict], path: Path = ENTITIES_PATH) -> None:
+    from starrail_rag.tools.temporal_anchors import TEMPORAL_ANCHORS
+
     by_type: dict[str, int] = {}
     for e in entities:
         by_type[e["type"]] = by_type.get(e["type"], 0) + 1
 
     total_relations = sum(len(e["known_relations"]) for e in entities)
-    with_description = sum(1 for e in entities if e["description"])
+    with_description = sum(1 for e in entities if e.get("description"))
 
     output = {
-        "version": "3.0",
-        "description": "星穹铁道领域实体词表（统一管线生成）",
+        "version": "3.1",
+        "description": "崩坏：星穹铁道领域实体词表（优化管线 v2）",
         "temporal_anchors": TEMPORAL_ANCHORS,
         "stats": {
             "total_entities": len(entities),
@@ -565,11 +472,12 @@ def save_entities(entities: list[dict], path: Path = ENTITIES_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-    logger.info("Phase 5: entities saved to %s", path)
+    logger.info("Saved %d entities to %s", len(entities), path)
 
-# -----------------------------------------------------------------------
+
+# ──────────────────────────────────────────────────────────────────────────────
 # 主入口
-# -----------------------------------------------------------------------
+# ──────────────────────────────────────────────────────────────────────────────
 
 def run_pipeline(
     doc_paths: list[Path] | None = None,
@@ -577,38 +485,56 @@ def run_pipeline(
     model: str = "deepseek-chat",
     resume: bool = True,
 ) -> list[dict]:
+    """
+    运行实体生成管线。
+
+    phases:
+      1 = 提取游戏属性表（属性上下文）
+      2 = DeepSeek 批量提取（需要 HSR_DEEPSEEK_API_KEY）
+      3 = 合并去重
+      4 = 序列化输出
+
+    默认运行全部阶段。
+    """
     if phases is None:
-        phases = {1, 2, 3, 4, 5}
+        phases = {1, 2, 3, 4}
 
-    seeds: dict[str, dict] = {}
-    raw_extractions: list[dict] = []
+    if doc_paths is None:
+        doc_paths = [
+            OUTPUT_DIR / "lore" / "books.jsonl",
+            OUTPUT_DIR / "lore" / "relic_sets.jsonl",
+            OUTPUT_DIR / "lore" / "character_stories.jsonl",
+            OUTPUT_DIR / "lore" / "light_cones.jsonl",
+            OUTPUT_DIR / "lore" / "item_lore.jsonl",
+        ]
 
+    # Phase 1：提取属性上下文
+    game_attributes = ""
     if 1 in phases:
-        seeds = extract_seeds(DATA_ROOT)
+        logger.info("=== Phase 1: Extracting game attributes ===")
+        game_attributes = extract_game_attributes(DATA_ROOT)
 
+    # Phase 2：DeepSeek 提取
+    raw_entities: list[dict] = []
     if 2 in phases:
-        if doc_paths is None:
-            doc_paths = [
-                OUTPUT_DIR / "book.jsonl",
-                OUTPUT_DIR / "relic_set.jsonl",
-                OUTPUT_DIR / "character_story.jsonl",
-                OUTPUT_DIR / "light_cone.jsonl",
-                OUTPUT_DIR / "item_lore.jsonl",
-            ]
-        raw_extractions = run_deepseek_extraction(doc_paths, model=model, resume=resume)
+        logger.info("=== Phase 2: DeepSeek extraction ===")
+        raw_entities = run_deepseek_extraction(
+            doc_paths, game_attributes, model=model, resume=resume
+        )
     elif RAW_EXTRACTIONS_PATH.exists():
-        # 从已有的原始结果加载（跳过 Phase 2）
         with open(RAW_EXTRACTIONS_PATH, encoding="utf-8") as f:
             for line in f:
-                batch = json.loads(line.strip())
-                raw_extractions.extend(batch.get("entities", []))
+                raw_entities.extend(json.loads(line.strip()).get("entities", []))
 
+    # Phase 3：合并去重
     entities: list[dict] = []
     if 3 in phases:
-        entities = merge(seeds, raw_extractions)
-    if 4 in phases:
-        entities = filter_aliases(entities)
-    if 5 in phases:
+        logger.info("=== Phase 3: Deduplication ===")
+        entities = deduplicate_entities(raw_entities)
+
+    # Phase 4：输出
+    if 4 in phases and entities:
+        logger.info("=== Phase 4: Saving ===")
         save_entities(entities)
 
     return entities
@@ -620,23 +546,18 @@ if __name__ == "__main__":
         format="%(asctime)s  %(levelname)-8s  %(message)s",
         datefmt="%H:%M:%S",
     )
-
-    parser = argparse.ArgumentParser(description="统一实体生成管线")
-    parser.add_argument("--phases", default="1,2,3,4,5",
-                        help="执行哪些阶段，逗号分隔（默认 1,2,3,4,5）")
-    parser.add_argument("--no-resume", action="store_true",
-                        help="不从断点续传，重新开始 Phase 2")
+    parser = argparse.ArgumentParser(description="实体生成管线（优化版 v2）")
+    parser.add_argument("--phases", default="1,2,3,4")
+    parser.add_argument("--no-resume", action="store_true")
     parser.add_argument("--model", default="deepseek-chat")
     args = parser.parse_args()
 
     phases = set(int(p) for p in args.phases.split(","))
     entities = run_pipeline(phases=phases, model=args.model, resume=not args.no_resume)
 
-    print(f"\n✓ 实体生成完成：{len(entities)} 个实体")
+    print(f"\n实体生成完成：{len(entities)} 个")
     by_type: dict[str, int] = {}
     for e in entities:
         by_type[e["type"]] = by_type.get(e["type"], 0) + 1
     for t, n in sorted(by_type.items(), key=lambda x: -x[1]):
-        relations_count = sum(len(e["known_relations"]) for e in entities if e["type"] == t)
-        print(f"  {t:12s}: {n:4d} 实体  {relations_count:4d} 关系")
-    print(f"\n输出: {ENTITIES_PATH}")
+        print(f"  {t}: {n}")
