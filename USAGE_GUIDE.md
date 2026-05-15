@@ -114,15 +114,9 @@ python3 -m starrail_rag.cli --extractors character_story light_cone relic_set bo
 ### 3.4 数据清洗验证
 
 ```bash
-# 快速检查是否有残留标签
-python3 -c "
-import json, re
-for f in ['output/main_story/01_今天是昨天的明天.jsonl']:
-    docs = [json.loads(l) for l in open(f)]
-    dirty = [d for d in docs for dl in d.get('dialogues',[]) 
-             if re.search(r'<[a-zA-Z]|\{NICKNAME\}', dl['text'])]
-    print(f'{f}: {len(dirty)} 条含残留标签')
-"
+python3 -m starrail_rag.scripts.validate_cleaning
+# 检查特定目录：
+python3 -m starrail_rag.scripts.validate_cleaning --path output/main_story
 ```
 
 ---
@@ -158,30 +152,10 @@ python3 -m starrail_rag.tools.entity_pipeline --phases 3,4  # 只做合并和输
 将所有实体名称发给 DeepSeek 识别重复：
 
 ```bash
-python3 -c "
-import json, os
-from openai import OpenAI
-
-client = OpenAI(api_key=os.environ['HSR_DEEPSEEK_API_KEY'], base_url='https://api.deepseek.com')
-
-# 生成名称列表
-with open('output/entities.json') as f:
-    entities = json.load(f)['entities']
-names = '\n'.join(f'{e[\"canonical\"]}: {e[\"type\"]}' for e in entities)
-
-resp = client.chat.completions.create(
-    model='deepseek-chat',
-    messages=[
-        {'role': 'system', 'content': '找出可以合并的实体对（标点差异/全名简称/同人不同称谓）。输出 JSON：[{\"keep\": \"保留名\", \"merge\": [\"合并名\"], \"reason\": \"原因\"}]'},
-        {'role': 'user', 'content': names}
-    ],
-    max_tokens=3000, temperature=0.1
-)
-with open('output/deepseek_merge_suggestions.json', 'w') as f:
-    json.dump(json.loads(resp.choices[0].message.content), f, ensure_ascii=False, indent=2)
-print('建议已保存到 output/deepseek_merge_suggestions.json，请人工审核后执行合并')
-"
+python3 -m starrail_rag.scripts.dedup_entity_names
 ```
+
+脚本会保存建议到 `output/deepseek_merge_suggestions.json`，**需人工审核**后再执行合并。
 
 ---
 
@@ -207,13 +181,7 @@ python3 -m starrail_rag.indexing.indexer --backend bge     # 本地 BGE-M3（需
 ### 5.2 构建 BM25 Sparse 索引（本地，无需 API）
 
 ```bash
-python3 -c "
-from starrail_rag.indexing.chunker import ChunkBuilder
-from starrail_rag.indexing.sparse_store import BM25Store
-chunks = ChunkBuilder().build_all()
-BM25Store().build(chunks)
-print('BM25 索引构建完成')
-"
+python3 -m starrail_rag.scripts.build_sparse_index
 ```
 
 预计时间：~10 秒
@@ -221,14 +189,7 @@ print('BM25 索引构建完成')
 ### 5.3 验证索引
 
 ```bash
-python3 -c "
-import chromadb
-col = chromadb.PersistentClient('output/chroma_db').get_collection('starrail_lore')
-print(f'Chroma: {col.count()} chunks')
-from starrail_rag.indexing.sparse_store import BM25Store
-s = BM25Store(); s.load()
-print(f'BM25: {s.count} chunks')
-"
+python3 -m starrail_rag.scripts.verify_index
 ```
 
 ---
@@ -243,19 +204,7 @@ nohup python3 -m starrail_rag.lightrag_builder > output/lightrag_build.log 2>&1 
 echo "PID: $!"
 
 # 查看进度
-python3 -c "
-import json
-data = json.load(open('output/lightrag_db/kv_store_doc_status.json'))
-done = sum(1 for v in data.values() if v.get('status')=='processed')
-print(f'{done}/{len(data)} ({done/len(data)*100:.1f}%)')
-"
-
-# 查看图谱规模
-python3 -c "
-with open('output/lightrag_db/graph_chunk_entity_relation.graphml') as f:
-    c = f.read()
-print(f'节点: {c.count(\"<node \")}  边: {c.count(\"<edge \")}')
-"
+python3 -m starrail_rag.scripts.check_lightrag_progress
 ```
 
 中断后恢复（LightRAG 自带 LLM cache，不会重复处理已完成的 chunk）：
@@ -324,21 +273,12 @@ print(f"来源: {len(result.sources)} 条")
 - **Hard（10题）**：隐性关联推理
 
 ```bash
-# ⬜ TODO：评估脚本（W15，待实现）
-# python3 -m starrail_rag.evaluate
-```
+# 预览题目（不运行查询）
+python3 -m starrail_rag.scripts.preview_eval
+python3 -m starrail_rag.scripts.preview_eval --difficulty hard --n 5
 
-手动测试方法：
-
-```bash
-python3 -c "
-import json
-qs = json.load(open('starrail_rag/eval_set.json'))['questions']
-for q in qs[:3]:  # 先测3道
-    print(f'[{q[\"difficulty\"]}] {q[\"question\"]}')
-    print(f'参考答案: {q[\"answer_key_points\"]}')
-    print()
-"
+# 实际运行查询并对比（需要 API key）
+python3 -m starrail_rag.scripts.preview_eval --run --difficulty easy --n 3
 ```
 
 ---
@@ -435,7 +375,7 @@ python3 -m starrail_rag.tools.entity_pipeline          # ~3-6小时，支持断�
 
 # 4. 向量化
 python3 -m starrail_rag.indexing.indexer --backend dashscope --reset  # ~30分钟
-python3 -c "from starrail_rag.indexing.chunker import ChunkBuilder; from starrail_rag.indexing.sparse_store import BM25Store; BM25Store().build(ChunkBuilder().build_all())"
+python3 -m starrail_rag.scripts.build_sparse_index                    # ~10秒
 
 # 5. LightRAG 建图（后台运行）
 nohup python3 -m starrail_rag.lightrag_builder > output/lightrag_build.log 2>&1 &
