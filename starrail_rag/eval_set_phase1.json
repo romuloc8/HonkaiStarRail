@@ -1,0 +1,238 @@
+{
+  "version": "1.0-phase1",
+  "description": "星穹铁道世界观 RAG 评估集 — Phase 1（黑塔/贝洛伯格/仙舟 + 通用 lore）",
+  "metadata": {
+    "total_questions": 21,
+    "base_eval_set": "eval_set.json",
+    "excluded_questions": ["Q009","Q010","Q012","Q013","Q019","Q020","Q021","Q025","Q028"],
+    "exclusion_reason": "上述题目主要依赖匹诺康尼 2.0/2.1 弧线（ch10-11：记忆是梦的开场白/再见匹诺康尼），该部分内容尚未注入 LightRAG。SIMPLE 路径的 Chroma 向量库有相关 lore，但缺乏剧情对话支撑，结果不具代表性。",
+    "lightrag_coverage": "ch01-09（黑塔→贝洛伯格→仙舟→2.2匹诺康尼主线结局），3165 节点 / 4344 边",
+    "chroma_coverage": "全部 7819 chunks（含所有 lore：角色故事/光锥/遗器/书籍/道具）",
+    "by_difficulty": {
+      "easy": 8,
+      "medium": 8,
+      "hard": 5
+    },
+    "notes": [
+      "Q001-Q008: easy 全部保留，均为黑塔/贝洛伯格/仙舟/lore 基础事实",
+      "Q011/Q014-Q018: medium 保留（仙舟/黑塔/lore 相关）",
+      "Q009/Q010/Q012/Q013/Q019/Q020: medium 匹诺康尼相关题目暂排除",
+      "Q022-Q024/Q026/Q027/Q029/Q030: hard 保留（lore 层或仙舟弧线）",
+      "Q021/Q025/Q028: hard 匹诺康尼 NPC 相关暂排除"
+    ]
+  },
+  "questions": [
+    {
+      "id": "Q001",
+      "difficulty": "easy",
+      "question": "星穹列车的现任列车长叫什么名字？",
+      "answer_key_points": ["帕姆"],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_mission"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q002",
+      "difficulty": "easy",
+      "question": "主角（开拓者）体内被植入了什么物品，从而苏醒？",
+      "answer_key_points": ["星核", "万界之癌（可选，作为星核的别称）"],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_mission"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q003",
+      "difficulty": "easy",
+      "question": "贝洛伯格目前的「大守护者」是谁？",
+      "answer_key_points": ["布洛妮娅", "布洛妮娅·兰德"],
+      "reasoning_type": "factual",
+      "requires_sources": ["wiki_mission"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q004",
+      "difficulty": "easy",
+      "question": "仙舟「罗浮」的现任神策将军是谁？",
+      "answer_key_points": ["景元"],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_story", "wiki_category"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q005",
+      "difficulty": "easy",
+      "question": "「星穹列车」是哪位星神留下的遗产？",
+      "answer_key_points": ["开拓星神", "阿基维利"],
+      "reasoning_type": "factual",
+      "requires_sources": ["item_lore"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q006",
+      "difficulty": "easy",
+      "question": "黑塔空间站的代理站长是谁？",
+      "answer_key_points": ["艾丝妲"],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_story", "wiki_mission"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q007",
+      "difficulty": "easy",
+      "question": "「巡猎」命途的星神叫什么名字？",
+      "answer_key_points": ["岚", "帝弓司命（仙舟对其的尊称）"],
+      "reasoning_type": "factual",
+      "requires_sources": ["item_lore"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q008",
+      "difficulty": "easy",
+      "question": "丹恒的前世（上一任持明龙尊）被称为什么？",
+      "answer_key_points": ["饮月君", "丹枫"],
+      "reasoning_type": "factual",
+      "requires_sources": ["character_story"],
+      "requires_hops": 1
+    },
+    {
+      "id": "Q011",
+      "difficulty": "medium",
+      "question": "丹恒、刃、景元、镜流和白珩这五个人在仙舟历史上被合称为什么？导致他们分崩离析的关键事件是什么？",
+      "answer_key_points": ["云上五骁", "饮月之乱（或白珩之死引发的复活实验）"],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["character_story", "book"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q014",
+      "difficulty": "medium",
+      "question": "引发「寰宇蝗灾」的繁育星神叫什么名字？祂最终在多位星神的围攻下被谁挥下的重锤击碎？",
+      "answer_key_points": ["塔伊兹育罗斯", "克里珀（存护星神）"],
+      "reasoning_type": "multi_hop_reasoning",
+      "requires_sources": ["wiki_category", "item_lore"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q015",
+      "difficulty": "medium",
+      "question": "在黑塔空间站的禁闭舱段中，阮·梅试图培育出的星星虫群巨兽，是哪位「繁育」令使的复制体？",
+      "answer_key_points": ["碎星王（或斯卡拉卡巴兹）"],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_category", "item_lore"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q016",
+      "difficulty": "medium",
+      "question": "雅利洛-VI历史上的第一任大守护者阿丽萨·兰德，当初是为了抵抗哪个势力的入侵，才不得不借助星核力量引发了覆盖全球的寒潮？",
+      "answer_key_points": ["反物质军团"],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_mission", "book"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q017",
+      "difficulty": "medium",
+      "question": "仙舟「罗浮」建木灾异的幕后黑手幻胧，其真实身份是哪位星神麾下的什么职位？",
+      "answer_key_points": ["纳努克（毁灭星神）", "绝灭大君"],
+      "reasoning_type": "multi_hop_reasoning",
+      "requires_sources": ["wiki_mission", "wiki_category"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q018",
+      "difficulty": "medium",
+      "question": "「模拟宇宙」项目是由天才俱乐部中的哪四位成员共同主导开发的？",
+      "answer_key_points": ["黑塔", "阮·梅", "螺丝咕姆", "斯蒂芬·劳埃德"],
+      "reasoning_type": "information_aggregation",
+      "requires_sources": ["wiki_category"],
+      "requires_hops": 3
+    },
+    {
+      "id": "Q022",
+      "difficulty": "hard",
+      "question": "星际和平公司「市场开拓部」的主管奥斯瓦尔多·施耐德，其早年曾拥有过哪个阵营的隐秘身份？这个身份与他后来在公司内部推行对茨冈尼亚等星球的激进同化政策，构成了怎样的矛盾与讽刺？",
+      "answer_key_points": [
+        "他早年曾是「无名客」（星穹列车的一员）",
+        "「开拓」本意是连接与探索未知，但他却将其扭曲为以「存护」为名的征服、殖民和霸权扩张"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["character_story", "book", "wiki_category"],
+      "requires_hops": 3
+    },
+    {
+      "id": "Q023",
+      "difficulty": "hard",
+      "question": "在仙舟「罗浮」的设定中，白露作为现任「衔药龙女」，其形态异于正常持明族且缺乏完整的龙尊记忆。结合《建木史话》等文本，这一现象与丹枫在「饮月之乱」中对谁实施的何种禁忌实验直接相关？",
+      "answer_key_points": [
+        "对已故的云上五骁成员「白珩」实施了实验",
+        "使用了丰饶令使「倏忽」的血肉与持明的「化龙妙法」试图将其复活",
+        "白露本质上是该复活实验的残缺产物/白珩的转世"
+      ],
+      "reasoning_type": "implicit_lore_mapping",
+      "requires_sources": ["character_story", "book", "wiki_mission"],
+      "requires_hops": 4
+    },
+    {
+      "id": "Q024",
+      "difficulty": "hard",
+      "question": "位面饰品「苍穹战线格拉默」描述的帝国为了对抗虫群制造了大量铁骑。结合「繁育」星神的陨落历史，格拉默帝国的覆灭实际上是发生在寰宇蝗灾的高潮期，还是塔伊兹育罗斯陨落之后？为什么？",
+      "answer_key_points": [
+        "发生在塔伊兹育罗斯（繁育星神）陨落之后",
+        "星神陨落后虫群并未瞬间灭绝，帝国在残局中继续战斗",
+        "帝国最终覆灭是因为高层（女皇与议会）的瓦解，以及患有「失熵症」的铁骑失去控制目标后从内部崩溃"
+      ],
+      "reasoning_type": "timeline_reconstruction",
+      "requires_sources": ["relic_set", "wiki_category", "character_story"],
+      "requires_hops": 3
+    },
+    {
+      "id": "Q026",
+      "difficulty": "hard",
+      "question": "模拟宇宙文本中提及的「寂静领主」波尔卡·卡卡蒙（天才俱乐部第4席），她与天才俱乐部第27席帝皇鲁珀特（第一次机械皇国的主导者）的死亡有何隐性关联？这反映了她作为天才的什么极端行事风格？",
+      "answer_key_points": [
+        "帝皇鲁珀特极有可能是被波尔卡·卡卡蒙亲手刺杀/摧毁的",
+        "她的行事风格是物理消灭那些她认为会给宇宙带来不可逆毁灭或偏离轨道的天才俱乐部成员"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_category", "item_lore"],
+      "requires_hops": 3
+    },
+    {
+      "id": "Q027",
+      "difficulty": "hard",
+      "question": "罗刹在同行任务中表现出对仙舟「丰饶」孽物的敌意，而他携带的棺柩中装有不可名状的遗骸。结合他与镜流在主线末尾的对话，两人达成合作的最终共同目标是什么？这与他们各自过去的经历有何矛盾之处？",
+      "answer_key_points": [
+        "最终共同目标是彻底杀死「丰饶」星神药师",
+        "矛盾在于：罗刹本身极度依赖或拥有类似丰饶的治愈力量（甚至被怀疑来自化外/丰饶民）；而镜流曾饱受丰饶恩赐（魔阴身）之苦，却与使用该力量的罗刹同行"
+      ],
+      "reasoning_type": "motive_analysis",
+      "requires_sources": ["wiki_mission", "wiki_category", "character_story"],
+      "requires_hops": 3
+    },
+    {
+      "id": "Q029",
+      "difficulty": "hard",
+      "question": "三月七被封印在「六相冰」中在宇宙中漂流。结合《智库》中关于各星神权能的描述以及黑塔对该物质的解析记录，这种无法被常规手段融化的奇特冰晶，最可能源自哪位星神或其派系的手笔？目的是什么？",
+      "answer_key_points": [
+        "最可能源自「记忆」星神浮黎或其麾下的流光忆庭",
+        "目的是为了绝对无损地「保存」某个重要的存在或记忆（六相冰是记忆命途概念的具象化实体）"
+      ],
+      "reasoning_type": "implicit_lore_mapping",
+      "requires_sources": ["character_story", "item_lore"],
+      "requires_hops": 2
+    },
+    {
+      "id": "Q030",
+      "difficulty": "hard",
+      "question": "在仙舟主线中，幻胧能够长时间完美伪装成停云而不被太卜司的穷观阵及符玄察觉。结合开拓续闻中阮·梅对令使造物的研究，这种级别的伪装在物理层面上必须满足什么先决条件？这暗示了真正的停云当时处于什么状态？",
+      "answer_key_points": [
+        "物理层面上幻胧必须利用了停云真实的肉身（或某种极其高阶的血肉重塑/置换技术），而非单纯的幻术",
+        "暗示真正的停云当时在物理上已经被幻胧控制、劫持甚至夺取了躯壳（生死未卜，但其身体特征被提取用于骗过阵法）"
+      ],
+      "reasoning_type": "cross_document_inference",
+      "requires_sources": ["wiki_mission", "wiki_category", "book"],
+      "requires_hops": 3
+    }
+  ]
+}

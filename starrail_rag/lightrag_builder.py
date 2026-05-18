@@ -197,8 +197,39 @@ async def build_graph(
     llm_func = _make_deepseek_llm(model=llm_model)
     embed_func = _make_dashscope_embedding()
 
-    async def llm_with_hints(prompt, system_prompt=None, **kwargs):
-        # 把 entity hints 注入 system prompt
+    async def llm_with_hints(prompt, system_prompt=None, keyword_extraction=False, **kwargs):
+        # ── 关键词提取模式：LightRAG 1.4.x 使用 Pydantic beta.parse()，DeepSeek 不支持。
+        #    改用 json_object 模式并手动构造返回对象。
+        if keyword_extraction:
+            import json as _json
+            from lightrag.types import GPTKeywordExtractionFormat
+            from openai import AsyncOpenAI
+            _client = AsyncOpenAI(
+                api_key=os.environ.get("HSR_DEEPSEEK_API_KEY"),
+                base_url="https://api.deepseek.com",
+            )
+            msgs = []
+            if system_prompt:
+                msgs.append({"role": "system", "content": system_prompt})
+            msgs.append({"role": "user", "content": prompt})
+            _resp = await _client.chat.completions.create(
+                model=llm_model,
+                messages=msgs,
+                response_format={"type": "json_object"},
+                max_tokens=512,
+                temperature=0,
+            )
+            raw = _resp.choices[0].message.content or "{}"
+            try:
+                data = _json.loads(raw)
+            except Exception:
+                data = {}
+            return GPTKeywordExtractionFormat(
+                high_level_keywords=data.get("high_level_keywords", []),
+                low_level_keywords=data.get("low_level_keywords", []),
+            )
+
+        # ── 普通调用：注入 entity hints 到 system prompt
         merged_system = system_prompt_with_hints
         if system_prompt:
             merged_system = system_prompt_with_hints + "\n\n" + system_prompt

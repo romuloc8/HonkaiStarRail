@@ -16,11 +16,18 @@ def main():
     status_file = LIGHTRAG_DIR / "kv_store_doc_status.json"
     if status_file.exists():
         data = json.load(open(status_file))
-        total = len(data)
-        done  = sum(1 for v in data.values() if v.get("status") == "processed")
-        dup   = sum(1 for v in data.values() if "[DUPLICATE]" in v.get("content_summary", ""))
+        total      = len(data)
+        processed  = sum(1 for v in data.values() if v.get("status") == "processed")
+        dup        = sum(1 for v in data.values() if "[DUPLICATE]" in v.get("content_summary", ""))
+        processing = sum(1 for v in data.values() if v.get("status") == "processing")
+        pending    = sum(1 for v in data.values() if v.get("status") == "pending")
+        # 重复跳过（status=failed + [DUPLICATE]）计入已完成
+        done = processed + dup
         print(f"批次进度: {done}/{total} ({done/total*100:.1f}%)")
-        print(f"去重跳过: {dup} 批（正常）")
+        print(f"  ├ 成功处理: {processed}")
+        print(f"  ├ 重复跳过: {dup}")
+        print(f"  ├ 处理中:   {processing}")
+        print(f"  └ 待处理:   {pending}")
     else:
         print("状态文件不存在（LightRAG 尚未启动）")
 

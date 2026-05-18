@@ -221,14 +221,22 @@ class QueryEngine:
         )
 
     async def _lightrag_query(self, text: str, mode: QueryMode, rag) -> QueryResult:
-        """LightRAG → deepseek-reasoner 生成（Hard 题）。"""
+        """LightRAG → deepseek-reasoner 生成（Hard 题）。失败时 fallback 到 Hybrid。"""
         from lightrag import QueryParam
         lightrag_mode = "local" if mode == QueryMode.COMPLEX else "global"
-        answer = await rag.aquery(
-            text,
-            param=QueryParam(mode=lightrag_mode),
-        )
-        # LightRAG 自己调用 LLM 生成，不需要再调一次
+        try:
+            answer = await rag.aquery(
+                text,
+                param=QueryParam(mode=lightrag_mode),
+            )
+        except Exception as e:
+            logger.warning("LightRAG query failed (%s), falling back to HybridRetriever", e)
+            return await self._hybrid_query(text, mode, 10)
+
+        if not answer:
+            logger.warning("LightRAG returned empty answer, falling back to HybridRetriever")
+            return await self._hybrid_query(text, mode, 10)
+
         return QueryResult(
             query=text,
             answer=answer,
