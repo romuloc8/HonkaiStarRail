@@ -1,0 +1,442 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d13" for="edge" attr.name="truncate" attr.type="string" />
+  <key id="d12" for="edge" attr.name="created_at" attr.type="long" />
+  <key id="d11" for="edge" attr.name="file_path" attr.type="string" />
+  <key id="d10" for="edge" attr.name="source_id" attr.type="string" />
+  <key id="d9" for="edge" attr.name="keywords" attr.type="string" />
+  <key id="d8" for="edge" attr.name="description" attr.type="string" />
+  <key id="d7" for="edge" attr.name="weight" attr.type="double" />
+  <key id="d6" for="node" attr.name="truncate" attr.type="string" />
+  <key id="d5" for="node" attr.name="created_at" attr.type="long" />
+  <key id="d4" for="node" attr.name="file_path" attr.type="string" />
+  <key id="d3" for="node" attr.name="source_id" attr.type="string" />
+  <key id="d2" for="node" attr.name="description" attr.type="string" />
+  <key id="d1" for="node" attr.name="entity_type" attr.type="string" />
+  <key id="d0" for="node" attr.name="entity_id" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="卡芙卡">
+      <data key="d0">卡芙卡</data>
+      <data key="d1">person</data>
+      <data key="d2">卡芙卡is a person involved in a conversation about the mysterious individual and Black Tower.&lt;SEP&gt;卡芙卡is a member of the Star Hunters who arrives at the space station and takes over the operation.&lt;SEP&gt;卡芙卡is a character who comments on the weakness of the anti-matter legion and identifies various geniuses.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6&lt;SEP&gt;chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735607</data>
+      <data key="d6" />
+    </node>
+    <node id="黑塔">
+      <data key="d0">黑塔</data>
+      <data key="d1">person</data>
+      <data key="d2">黑塔is a person mentioned, appears young despite being famous over a hundred years ago during the previous Amber Era.&lt;SEP&gt;黑塔is a genius who was targeted by银狼.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735614</data>
+      <data key="d6" />
+    </node>
+    <node id="天才俱乐部">
+      <data key="d0">天才俱乐部</data>
+      <data key="d1">organization</data>
+      <data key="d2">The Genius Society is an organization that黑塔is a member of.&lt;SEP&gt;天才俱乐部is an organization for geniuses, potentially including the white-bearded old man.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735618</data>
+      <data key="d6" />
+    </node>
+    <node id="博识尊">
+      <data key="d0">博识尊</data>
+      <data key="d1">aeon</data>
+      <data key="d2">博识尊is the Aeon of Erudition, and黑塔is an Emanator of博识尊.&lt;SEP&gt;博识尊is a star god that may have been created by赞达尔.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735609</data>
+      <data key="d6" />
+    </node>
+    <node id="智识">
+      <data key="d0">智识</data>
+      <data key="d1">concept</data>
+      <data key="d2">智识is a Path associated with博识尊.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735574</data>
+      <data key="d6" />
+    </node>
+    <node id="琥珀纪">
+      <data key="d0">琥珀纪</data>
+      <data key="d1">concept</data>
+      <data key="d2">Amber Era is a unit of time mentioned, during which黑塔was already famous.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735574</data>
+      <data key="d6" />
+    </node>
+    <node id="联盟">
+      <data key="d0">联盟</data>
+      <data key="d1">organization</data>
+      <data key="d2">The Alliance is a faction mentioned, known for long-lived beings.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735574</data>
+      <data key="d6" />
+    </node>
+    <node id="？？？">
+      <data key="d0">？？？</data>
+      <data key="d1">person</data>
+      <data key="d2">An unidentified person conversing with卡芙卡, providing information about黑塔and the Genius Society.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735575</data>
+      <data key="d6" />
+    </node>
+    <node id="反物质军团">
+      <data key="d0">反物质军团</data>
+      <data key="d1">organization</data>
+      <data key="d2">反物质军团is an organization that invaded the space station two system hours ago, causing explosions and system paralysis.&lt;SEP&gt;The anti-matter legion is a force that has become weak according to卡芙卡.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735608</data>
+      <data key="d6" />
+    </node>
+    <node id="艾利欧">
+      <data key="d0">艾利欧</data>
+      <data key="d1">person</data>
+      <data key="d2">艾利欧is a member of the Star Hunters known for foreseeing the future and writing "scripts" for the team's actions.&lt;SEP&gt;艾利欧is a person who took interest in银狼after her actions against螺丝咕姆.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735614</data>
+      <data key="d6" />
+    </node>
+    <node id="空间站">
+      <data key="d0">空间站</data>
+      <data key="d1">location</data>
+      <data key="d2">空间站is the location where the events take place, recently attacked by the Antimatter Legion.&lt;SEP&gt;The space station is the internal location that characters successfully entered after passing through the corridor.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735618</data>
+      <data key="d6" />
+    </node>
+    <node id="令使">
+      <data key="d0">令使</data>
+      <data key="d1">concept</data>
+      <data key="d2">An Emanator is a powerful being chosen by an Aeon, such as黑塔being an Emanator of博识尊.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735579</data>
+      <data key="d6" />
+    </node>
+    <node id="「智识」">
+      <data key="d0">「智识」</data>
+      <data key="d1">path</data>
+      <data key="d2">The Path of Erudition, associated with the Aeon博识尊.</data>
+      <data key="d3">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735579</data>
+      <data key="d6" />
+    </node>
+    <node id="红头发的站长">
+      <data key="d0">红头发的站长</data>
+      <data key="d1">person</data>
+      <data key="d2">红头发的站长is the station master with red hair who orders evacuation procedures.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735582</data>
+      <data key="d6" />
+    </node>
+    <node id="白色头发的少年">
+      <data key="d0">白色头发的少年</data>
+      <data key="d1">person</data>
+      <data key="d2">白色头发的少年is a character with white hair who reacts to the danger.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735583</data>
+      <data key="d6" />
+    </node>
+    <node id="纠缠之缘的转世">
+      <data key="d0">纠缠之缘的转世</data>
+      <data key="d1">person</data>
+      <data key="d2">纠缠之缘的转世is a character who warns others to be careful during the chaos.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735583</data>
+      <data key="d6" />
+    </node>
+    <node id="银狼">
+      <data key="d0">银狼</data>
+      <data key="d1">person</data>
+      <data key="d2">银狼is the unnamed speaker ("？？？") talking to Kafka, a Star Hunter who finds previous missions boring and seeks enjoyment.&lt;SEP&gt;银狼is a character who cracked螺丝咕姆's program and is identified by卡芙卡as a target of艾利欧.</data>
+      <data key="d3">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735612</data>
+      <data key="d6" />
+    </node>
+    <node id="赞达尔">
+      <data key="d0">赞达尔</data>
+      <data key="d1">person</data>
+      <data key="d2">赞达尔•壹•桑原is historically the first genius and is rumored to have created博识尊.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735607</data>
+      <data key="d6" />
+    </node>
+    <node id="寂静领主">
+      <data key="d0">寂静领主</data>
+      <data key="d1">person</data>
+      <data key="d2">寂静领主is another name for波尔卡•卡卡目, a person with an empty face who destroyed her own images across the universe.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735610</data>
+      <data key="d6" />
+    </node>
+    <node id="波尔卡·卡卡目">
+      <data key="d0">波尔卡·卡卡目</data>
+      <data key="d1">person</data>
+      <data key="d2">波尔卡·卡卡目is the寂静领主, known for destroying her own portraits and sculptures.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735610</data>
+      <data key="d6" />
+    </node>
+    <node id="螺丝咕姆">
+      <data key="d0">螺丝咕姆</data>
+      <data key="d1">person</data>
+      <data key="d2">螺丝咕姆is a genius and an old opponent of银狼.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735612</data>
+      <data key="d6" />
+    </node>
+    <node id="命运的奴隶">
+      <data key="d0">命运的奴隶</data>
+      <data key="d1">person</data>
+      <data key="d2">命运的奴隶is a title that银狼ironically applies to herself.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735614</data>
+      <data key="d6" />
+    </node>
+    <node id="星穹列车">
+      <data key="d0">星穹列车</data>
+      <data key="d1">faction</data>
+      <data key="d2">星穹列车is a group that卡芙卡intends to delay with the anti-matter legion.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735614</data>
+      <data key="d6" />
+    </node>
+    <node id="末日兽">
+      <data key="d0">末日兽</data>
+      <data key="d1">creature</data>
+      <data key="d2">末日兽is a creature brought in to assist in delaying星穹列车.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735617</data>
+      <data key="d6" />
+    </node>
+    <node id="赞达尔·壹·桑原">
+      <data key="d0">赞达尔·壹·桑原</data>
+      <data key="d1">person</data>
+      <data key="d2">赞达尔·壹·桑原is the historically first genius and a member of the genius club, known for possibly creating博识尊.</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735618</data>
+      <data key="d6" />
+    </node>
+    <node id="白胡子老头儿">
+      <data key="d0">白胡子老头儿</data>
+      <data key="d3">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d2">The white-bearded old man is speculated to be a member of the天才俱乐部.</data>
+      <data key="d1">UNKNOWN</data>
+      <data key="d4">unknown_source</data>
+      <data key="d5">1778735625</data>
+      <data key="d6" />
+    </node>
+    <edge source="卡芙卡" target="黑塔">
+      <data key="d7">1.0</data>
+      <data key="d8">卡芙卡is asking about黑塔in a conversation.</data>
+      <data key="d9">conversation,introduction</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735586</data>
+      <data key="d13" />
+    </edge>
+    <edge source="卡芙卡" target="反物质军团">
+      <data key="d7">2.0</data>
+      <data key="d8">卡芙卡learns that the Antimaterial Legion is responsible for the attack on the space station.&lt;SEP&gt;卡芙卡states that the anti-matter legion has become weak.</data>
+      <data key="d9">conflict,invasion,observation,weakness</data>
+      <data key="d10">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735620</data>
+      <data key="d13" />
+    </edge>
+    <edge source="卡芙卡" target="艾利欧">
+      <data key="d7">1.0</data>
+      <data key="d8">卡芙卡follows the future foreseen by Elio, treating it as a script for their actions.</data>
+      <data key="d9">membership,script</data>
+      <data key="d10">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735591</data>
+      <data key="d13" />
+    </edge>
+    <edge source="卡芙卡" target="？？？">
+      <data key="d7">1.0</data>
+      <data key="d8">卡芙卡is asking questions to the unidentified person.</data>
+      <data key="d9">conversation</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735594</data>
+      <data key="d13" />
+    </edge>
+    <edge source="卡芙卡" target="银狼">
+      <data key="d7">2.0</data>
+      <data key="d8">Kafka communicates with Silver Wolf and takes over the operation from them.&lt;SEP&gt;卡芙卡speaks to and identifies银狼, commenting on her past actions.</data>
+      <data key="d9">communication,conversation,identification,operation handover</data>
+      <data key="d10">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71&lt;SEP&gt;chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735629</data>
+      <data key="d13" />
+    </edge>
+    <edge source="卡芙卡" target="空间站">
+      <data key="d7">1.0</data>
+      <data key="d8">卡芙卡and others successfully enter the space station.</data>
+      <data key="d9">entrance,location</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735629</data>
+      <data key="d13" />
+    </edge>
+    <edge source="黑塔" target="天才俱乐部">
+      <data key="d7">1.0</data>
+      <data key="d8">黑塔is a member of the Genius Society.</data>
+      <data key="d9">membership</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735586</data>
+      <data key="d13" />
+    </edge>
+    <edge source="黑塔" target="博识尊">
+      <data key="d7">1.0</data>
+      <data key="d8">黑塔is an Emanator of博识尊.</data>
+      <data key="d9">Aeon,Emanator</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735588</data>
+      <data key="d13" />
+    </edge>
+    <edge source="黑塔" target="令使">
+      <data key="d7">1.0</data>
+      <data key="d8">黑塔is an Emanator, a high-status being empowered by an Aeon.</data>
+      <data key="d9">power,status</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735591</data>
+      <data key="d13" />
+    </edge>
+    <edge source="黑塔" target="银狼">
+      <data key="d7">1.0</data>
+      <data key="d8">银狼also targeted黑塔, another genius.</data>
+      <data key="d9">conflict,targeting</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735624</data>
+      <data key="d13" />
+    </edge>
+    <edge source="天才俱乐部" target="？？？">
+      <data key="d7">1.0</data>
+      <data key="d8">The unidentified person explains that黑塔is from the Genius Society.</data>
+      <data key="d9">affiliation,discussion</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735589</data>
+      <data key="d13" />
+    </edge>
+    <edge source="天才俱乐部" target="白胡子老头儿">
+      <data key="d7">1.0</data>
+      <data key="d8">The white-bearded old man is speculated to be a member of the天才俱乐部.</data>
+      <data key="d9">membership,speculation</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735628</data>
+      <data key="d13" />
+    </edge>
+    <edge source="博识尊" target="智识">
+      <data key="d7">1.0</data>
+      <data key="d8">博识尊is the Aeon of the Erudition (智识) Path.</data>
+      <data key="d9">Aeon,Path</data>
+      <data key="d10">chunk-c62549d358805658f577edf0ab9b10f6</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735591</data>
+      <data key="d13" />
+    </edge>
+    <edge source="博识尊" target="赞达尔">
+      <data key="d7">1.0</data>
+      <data key="d8">赞达尔is rumored to have created the star god博识尊.</data>
+      <data key="d9">creation,legend</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735620</data>
+      <data key="d13" />
+    </edge>
+    <edge source="反物质军团" target="空间站">
+      <data key="d7">1.0</data>
+      <data key="d8">The Antimatter Legion invaded the space station, causing massive system paralysis through explosions.</data>
+      <data key="d9">attack,invasion</data>
+      <data key="d10">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735586</data>
+      <data key="d13" />
+    </edge>
+    <edge source="反物质军团" target="星穹列车">
+      <data key="d7">1.0</data>
+      <data key="d8">卡芙卡plans to use the anti-matter legion to delay星穹列车.</data>
+      <data key="d9">delay,target</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735624</data>
+      <data key="d13" />
+    </edge>
+    <edge source="艾利欧" target="银狼">
+      <data key="d7">1.0</data>
+      <data key="d8">银狼jokes that she is the命运的奴隶, implying艾利欧has caught her.</data>
+      <data key="d9">capture,fate</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735625</data>
+      <data key="d13" />
+    </edge>
+    <edge source="空间站" target="红头发的站长">
+      <data key="d7">1.0</data>
+      <data key="d8">The red-haired station master manages the space station and orders the evacuation of its occupants.</data>
+      <data key="d9">administration,evacuation</data>
+      <data key="d10">chunk-c7d8a992974bc2f1f0901e4cbb9b3e71</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735588</data>
+      <data key="d13" />
+    </edge>
+    <edge source="银狼" target="螺丝咕姆">
+      <data key="d7">1.0</data>
+      <data key="d8">银狼cracked螺丝咕姆's program, making him her old opponent.</data>
+      <data key="d9">conflict,hacking</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735621</data>
+      <data key="d13" />
+    </edge>
+    <edge source="寂静领主" target="波尔卡·卡卡目">
+      <data key="d7">1.0</data>
+      <data key="d8">波尔卡·卡卡目is known as the寂静领主.</data>
+      <data key="d9">alias,identity</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735621</data>
+      <data key="d13" />
+    </edge>
+    <edge source="星穹列车" target="末日兽">
+      <data key="d7">1.0</data>
+      <data key="d8">末日兽was brought in to help delay星穹列车.</data>
+      <data key="d9">reinforcement,threat</data>
+      <data key="d10">chunk-a3cfc8f55ca58a8b49ae984321424c78</data>
+      <data key="d11">unknown_source</data>
+      <data key="d12">1778735625</data>
+      <data key="d13" />
+    </edge>
+  </graph>
+</graphml>

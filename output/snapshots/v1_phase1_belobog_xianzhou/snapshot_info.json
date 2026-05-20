@@ -1,0 +1,20 @@
+{
+  "snapshot_time": "2026-05-18",
+  "label": "v1_phase1 — 黑塔/贝洛伯格/仙舟/2.2匹诺康尼主线(ch01-09)",
+  "batches_processed": 590,
+  "batches_duplicate": 278,
+  "total_batches": 877,
+  "source_chapters": [
+    "今天是昨天的明天",
+    "于枯索的冬夜里",
+    "于曈昽的骄阳下",
+    "乘槎驭风仙窟游",
+    "云树百丈蔽重楼",
+    "劫波渡尽战云收",
+    "喧哗与骚动",
+    "鸽群中的猫",
+    "在我们的时代里"
+  ],
+  "graph_nodes": 3165,
+  "graph_edges": 4344
+}
