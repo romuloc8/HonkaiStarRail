@@ -144,30 +144,45 @@ def extract_game_attributes(data_root: Path = DATA_ROOT) -> str:
 
 SYSTEM_PROMPT_TEMPLATE = """你是崩坏：星穹铁道世界观的专业分析师，负责构建知识图谱。
 
-【游戏内已知实体属性（请直接使用这些属性，不要重复创建）】
+【游戏内已知实体属性（请直接使用，不要重复创建）】
 {game_attributes}
 
 【任务】
-从游戏文本中提取命名实体，为每个实体生成：
-1. canonical（规范名称）
-2. type：character | aeon | path | faction | location | event | concept
-3. description：20-50字简洁描述
-4. attributes：结合上方属性表填写 path/element/rarity（已知的直接填，未知留空）
-5. aliases：【全局唯一别称】——任何上下文中出现都指向此实体（如「丹恒•腾荒」）
-6. context_aliases：【上下文相关别称】——只在特定文本中才指向此实体
-   格式：{{"text": "别称", "context": "适用场景"}}
-   规则：代词（他/她/祂）、泛化词（少年/将军/医生）均为 context_aliases
-7. relations：与其他实体的关系，需标注时间锚点
+从游戏文本中提取命名实体，为每个实体生成完整的结构化信息。
 
-【时间锚点 ID（relations 中必须使用）】
-epoch_titan, epoch_xianzhou_founding, event_jimu, event_buliren,
-event_yinyue, event_belo_isolation, era_kakavasha,
-arc_main_110, arc_main_belobog, arc_main_luofu, arc_main_penacony,
-arc_main_amphoreus, arc_main_paradise, arc_post_main, unknown
+【来源上下文（影响可信度判断）】
+{source_context}
+
+【时间锚点系统（三级，relations 中使用）】
+{anchor_hint}
 
 position: before | during | after | spanning
 
-【注意】relations 只包含文本中有明确依据的关系，不要推测。"""
+【可信度（reliability）枚举】
+- confirmed          → 主线直接叙事，当前发生的可观察事实
+- historical_record  → 世界内档案/史书，被接受为历史但经作者视角过滤
+- character_account  → 角色第一人称叙述，主观且可能不完整
+- legend             → 口耳相传的神话/传说，可能有夸大或失真
+- speculation        → 说话者明确表示不确定（含"我认为"/"据说"/"可能"）
+- in_character_fiction → 世界观内部虚构作品（《钟表小子》、遗器寓言故事）
+- reconstructed      → 穷观阵/忆质/梦境/推演中的记忆重建内容（可信度极低）
+
+【置信度（confidence）枚举】
+- confirmed  → 文本明确陈述
+- probable   → 有合理证据但未明确陈述
+- speculative → 需要推断，不确定
+
+【关键规则】
+1. description 必须含时态词（现任/曾任/已故/前往等），不写静态快照
+2. event_anchor = 事件实际发生的时间；source_anchor = 从哪段文本得知（两者可不同）
+3. 含「我认为」「据说」「传说」「可能是」等词 → reliability=speculation/legend
+4. 穷观阵/忆质/梦境/推演场景中的陈述 → reliability=reconstructed
+5. 世界内书籍/档案中的陈述 → reliability=historical_record（注意作者立场）
+6. 开拓者/玩家选项台词 → 不提取为关系，这些是玩家输入不是世界观事实
+7. valid_until_mission 必填：当关系有明确结束时间（职位变更/死亡/离开/揭露）
+8. 只提取文本中有明确依据的关系，不推测
+9. 命途（Path）是独立存在的，不是星神的属性；星神是命途的当前执掌者
+10. 识别同一实体的多重身份（转世/化身/伪装）时使用 identity_layers"""
 
 USER_PROMPT_TEMPLATE = """请从以下【{count}段】崩坏：星穹铁道文本中提取实体信息。
 
@@ -176,18 +191,53 @@ USER_PROMPT_TEMPLATE = """请从以下【{count}段】崩坏：星穹铁道文�
 ---
 输出 JSON 数组，每个实体格式：
 {{
-  "canonical": "规范名称",
-  "type": "类型",
-  "description": "20-50字描述",
+  "canonical": "规范名称（最常用、最完整的名称）",
+  "type": "character|aeon|path|faction|location|event|concept",
+  "subtype": "emanator|long_life_species|trailblazer|aeon_vessel|null（角色细分）",
+  "current_status": "alive|deceased|transformed|missing|incapacitated|unknown",
+  "current_status_since_mission": null,
+  "current_status_note": "（如有明确描述）可可利亚在「静静的星河」中身亡",
+  "description": "20-60字描述，必须含时态（现任/曾任/已故）",
   "attributes": {{"path": "", "element": "", "rarity": ""}},
-  "aliases": ["全局唯一别称"],
-  "context_aliases": [{{"text": "别称", "context": "适用场景"}}],
-  "relations": [
+  "serves_path": null,
+  "serves_aeon": null,
+  "exists_independently": false,
+  "deliberately_ambiguous": false,
+  "aliases": ["全局唯一别称——任何上下文都指向此实体"],
+  "context_aliases": [{{"text": "别称", "context": "只在此场景中适用的原因"}}],
+  "identity_layers": [
     {{
-      "target": "目标实体",
-      "relation": "英文动词",
-      "temporal_anchor": "锚点id",
-      "temporal_position": "before|during|after|spanning",
+      "identity": "丹枫",
+      "relation_to_canonical": "past_self|alter_ego|incarnation|title|facade",
+      "description": "前世/化身的说明",
+      "valid_until_mission": null
+    }}
+  ],
+  "known_relations": [
+    {{
+      "target": "目标实体规范名",
+      "relation": "英文动词_下划线（如 holds_title / member_of / caused_event）",
+      "temporal": {{
+        "event_anchor": "事件实际发生的锚点id（ch01-ch23 或 arc_* 或 epoch_*）",
+        "event_position": "before|during|after|spanning",
+        "source_anchor": "从哪个章节文本得知此事（同当前文档锚点）",
+        "valid_from": null,
+        "valid_from_mission": null,
+        "valid_from_name": null,
+        "valid_until": null,
+        "valid_until_mission": null,
+        "valid_until_name": "结束时的任务名（如「静静的星河」）",
+        "precision": "arc_level|chapter_level|mission_level|approximate|unknown",
+        "raw_evidence": "原文中关于时间的表述，若无则留空",
+        "duration": null,
+        "simulation_context": null,
+        "cycle_number": null
+      }},
+      "reliability": "confirmed|historical_record|character_account|legend|speculation|in_character_fiction|reconstructed",
+      "confidence": "confirmed|probable|speculative",
+      "perspective": "omniscient|agent|victim|observer",
+      "visibility": "public|secret|unknown",
+      "is_symmetric": false,
       "note": "说明（可空）"
     }}
   ]
@@ -198,7 +248,67 @@ JSON 数组："""
 BATCH_TARGET_TOKENS = 1200
 BATCH_MAX_DOCS = 6
 REQUEST_DELAY = 1.0
-MAX_OUTPUT_TOKENS = 2000
+MAX_OUTPUT_TOKENS = 4000  # increased for richer schema
+
+
+def _build_source_context(doc: dict) -> str:
+    """从文档元数据生成来源上下文，注入 extraction prompt。"""
+    meta = doc.get("metadata", {})
+    category = meta.get("category", doc.get("doc_type", ""))
+    chapter_name = meta.get("chapter_name", "")
+    chapter_anchor = meta.get("chapter_anchor", "unknown")
+    narrative_layer = meta.get("narrative_layer", "confirmed")
+
+    # 可信度提示
+    reliability_hints = {
+        "开拓任务": "主线剧情，reliability 默认 confirmed；角色自述主观内容用 character_account",
+        "终末任务": "主线剧情，reliability 默认 confirmed",
+        "同行任务": "角色视角叙述，多为 character_account；穷观阵/梦境场景用 reconstructed",
+        "开拓续闻": "多为 historical_record 或 character_account",
+        "冒险任务": "character_account 为主",
+        "活动任务": "character_account 为主",
+        "character_story": "角色个人视角，character_account；角色自称不确定时用 speculation",
+        "book":            "世界内历史文献，historical_record；神话传说部分用 legend",
+        "relic_set":       "遗器描述常含寓言/隐喻，in_character_fiction 或 legend",
+        "item_lore":       "historical_record",
+        "light_cone":      "historical_record 或 character_account",
+        "achievement":     "confirmed（成就描述是官方认可的事实）",
+    }
+    hint = reliability_hints.get(category, "confirmed（默认）")
+
+    # 已知叙事修正
+    corrections_note = ""
+    corrections_path = Path("/workspace/output/known_corrections.json")
+    if corrections_path.exists():
+        try:
+            corrections = json.load(open(corrections_path))
+            for c in corrections.get("corrections", []):
+                if chapter_anchor in c.get("affected_chapters", []):
+                    corrections_note = (
+                        f"\n⚠️ 已知叙事修正：{c['description']}（{c['corrected_by_mission_name']}揭示）"
+                        f"——此章节部分内容可能不可靠，受影响内容请标注 reliability={c['reliability_override']}"
+                    )
+        except Exception:
+            pass
+
+    return (
+        f"来源章节: {chapter_name or '未知'}（{chapter_anchor}）\n"
+        f"内容类型: {category}\n"
+        f"可信度基准: {hint}{corrections_note}\n"
+        f"relations 中 source_anchor 填: {chapter_anchor}"
+    )
+
+
+def _build_anchor_hint() -> str:
+    """构建注入 prompt 的锚点提示（简化版，避免过长）。"""
+    from starrail_rag.tools.temporal_anchors import TEMPORAL_ANCHORS
+    lines = []
+    for a in sorted(TEMPORAL_ANCHORS, key=lambda x: x["order"]):
+        if a["id"] == "unknown":
+            continue
+        level_mark = {1: "⚡", 2: "🌐", 3: "📖"}.get(a.get("level", 2), "")
+        lines.append(f"  {a['id']:35s} {level_mark} {a['label']}")
+    return "\n".join(lines)
 
 
 def _estimate_tokens(text: str) -> int:
@@ -245,12 +355,24 @@ def _call_deepseek(
     model: str = "deepseek-chat",
 ) -> list[dict]:
     texts = []
+    source_contexts = []
     for i, doc in enumerate(batch, 1):
         text = _doc_to_text(doc)
         if text:
             texts.append(f"[段落{i}·{doc.get('doc_type', '')}·{doc.get('title', '')}]\n{text}")
+            source_contexts.append(_build_source_context(doc))
     if not texts:
         return []
+
+    # Inject source context into the user message header
+    ctx_summary = "\n---\n".join(set(source_contexts))  # deduplicate identical contexts
+    anchor_hint = _build_anchor_hint()
+
+    # Build the final system prompt with anchor hint
+    full_system = system_prompt.format(
+        source_context=ctx_summary,
+        anchor_hint=anchor_hint,
+    ) if "{source_context}" in system_prompt else system_prompt
 
     prompt = USER_PROMPT_TEMPLATE.format(count=len(texts), texts="\n\n".join(texts))
 
@@ -259,7 +381,7 @@ def _call_deepseek(
             resp = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": full_system},
                     {"role": "user", "content": prompt},
                 ],
                 max_tokens=MAX_OUTPUT_TOKENS,
@@ -289,7 +411,11 @@ def run_deepseek_extraction(
         raise RuntimeError("HSR_DEEPSEEK_API_KEY 未设置")
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
 
-    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(game_attributes=game_attributes)
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+        game_attributes=game_attributes,
+        source_context="{source_context}",   # filled per-batch in _call_deepseek
+        anchor_hint="{anchor_hint}",          # filled per-batch in _call_deepseek
+    )
 
     docs: list[dict] = []
     for path in doc_paths:
@@ -347,20 +473,17 @@ def _normalize(name: str) -> str:
     return name.strip().lower()
 
 
+from starrail_rag.tools.temporal_anchors import ANCHOR_BY_ID
+
 def _validate_anchor(anchor_id: str) -> str:
-    VALID_ANCHORS = {
-        "epoch_titan", "epoch_xianzhou_founding", "event_jimu", "event_buliren",
-        "event_yinyue", "event_belo_isolation", "era_kakavasha",
-        "arc_main_110", "arc_main_belobog", "arc_main_luofu", "arc_main_penacony",
-        "arc_main_amphoreus", "arc_main_paradise", "arc_post_main", "unknown",
-    }
-    return anchor_id if anchor_id in VALID_ANCHORS else "unknown"
+    """验证时间锚点 ID，接受 epoch/arc/chapter 三级锚点。"""
+    return anchor_id if anchor_id in ANCHOR_BY_ID else "unknown"
 
 
 def deduplicate_entities(raw_entities: list[dict]) -> list[dict]:
     """
-    合并同名实体（canonical 名相同的合并 aliases / context_aliases / relations），
-    按 mention_count 排序。
+    合并同名实体，按 mention_count 排序。
+    新 schema 字段全部正确初始化并合并。
     """
     merged: dict[str, dict] = {}
 
@@ -374,15 +497,32 @@ def deduplicate_entities(raw_entities: list[dict]) -> list[dict]:
 
         if key not in merged:
             e = {
-                "canonical": canonical,
-                "type": raw.get("type", "concept"),
-                "description": raw.get("description", "").strip(),
-                "attributes": raw.get("attributes") or {},
-                "aliases": [],
+                # 基础字段
+                "canonical":    canonical,
+                "type":         raw.get("type", "concept"),
+                "subtype":      raw.get("subtype") or None,
+                "description":  raw.get("description", "").strip(),
+                "attributes":   raw.get("attributes") or {},
+                # 实体状态
+                "current_status":              raw.get("current_status", "unknown"),
+                "current_status_since_mission": raw.get("current_status_since_mission"),
+                "current_status_note":          raw.get("current_status_note", ""),
+                # Path/Aeon 关系
+                "serves_path":          raw.get("serves_path"),
+                "serves_aeon":          raw.get("serves_aeon"),
+                "exists_independently": raw.get("exists_independently", False),
+                # 叙事元数据
+                "deliberately_ambiguous": raw.get("deliberately_ambiguous", False),
+                # 别称
+                "aliases":         [],
                 "context_aliases": [],
+                # 多重身份
+                "identity_layers": [],
+                # 关系
                 "known_relations": [],
-                "source_hint": raw.get("source_hint", "").strip(),
-                "mention_count": 0,
+                # 统计
+                "source_hint":        raw.get("source_hint", "").strip(),
+                "mention_count":      0,
                 "disambiguation_note": "",
             }
             merged[key] = e
@@ -391,55 +531,130 @@ def deduplicate_entities(raw_entities: list[dict]) -> list[dict]:
 
         e["mention_count"] += 1
 
-        # description（取第一个非空）
+        # description（取第一个非空，优先含时态词的）
         if not e["description"] and raw.get("description"):
             e["description"] = raw["description"].strip()
+        elif raw.get("description"):
+            new_desc = raw["description"].strip()
+            # 优先含时态词的描述
+            temporal_words = ("现任", "曾任", "已故", "前往", "前任", "转世")
+            if any(w in new_desc for w in temporal_words) and not any(w in e["description"] for w in temporal_words):
+                e["description"] = new_desc
+
+        # current_status（取最具体的）
+        status_priority = {"deceased": 5, "transformed": 4, "missing": 3,
+                           "incapacitated": 2, "alive": 1, "unknown": 0}
+        cur_p = status_priority.get(e["current_status"], 0)
+        new_p = status_priority.get(raw.get("current_status", "unknown"), 0)
+        if new_p > cur_p:
+            e["current_status"] = raw["current_status"]
+            if raw.get("current_status_since_mission"):
+                e["current_status_since_mission"] = raw["current_status_since_mission"]
+            if raw.get("current_status_note"):
+                e["current_status_note"] = raw["current_status_note"]
+
+        # subtype（取第一个非空）
+        if not e["subtype"] and raw.get("subtype"):
+            e["subtype"] = raw["subtype"]
+
+        # serves_path / serves_aeon（取第一个非空）
+        if not e["serves_path"] and raw.get("serves_path"):
+            e["serves_path"] = raw["serves_path"]
+        if not e["serves_aeon"] and raw.get("serves_aeon"):
+            e["serves_aeon"] = raw["serves_aeon"]
+
+        # deliberately_ambiguous（取 OR）
+        if raw.get("deliberately_ambiguous"):
+            e["deliberately_ambiguous"] = True
 
         # attributes（填空字段）
         for attr_key, attr_val in (raw.get("attributes") or {}).items():
             if attr_val and not e["attributes"].get(attr_key):
                 e["attributes"][attr_key] = attr_val
 
-        # aliases（全局唯一，去重）
-        existing_aliases = set(e["aliases"])
-        for alias in raw.get("aliases", []):
-            alias = alias.strip()
-            if alias and alias != canonical and alias not in existing_aliases:
-                e["aliases"].append(alias)
-                existing_aliases.add(alias)
+        # aliases 去重合并
+        existing_aliases = set(_normalize(a) for a in e["aliases"])
+        for alias in (raw.get("aliases") or []):
+            if isinstance(alias, str) and alias.strip():
+                if _normalize(alias) not in existing_aliases and _normalize(alias) != _normalize(canonical):
+                    e["aliases"].append(alias.strip())
+                    existing_aliases.add(_normalize(alias))
 
-        # context_aliases（去重）
-        existing_ctx = {a["text"] for a in e["context_aliases"]}
-        for ca in raw.get("context_aliases", []):
-            if isinstance(ca, dict) and ca.get("text") not in existing_ctx:
-                e["context_aliases"].append(ca)
-                existing_ctx.add(ca["text"])
+        # context_aliases 去重合并
+        existing_ctx = set(
+            (_normalize(ca.get("text", "")), ca.get("context", ""))
+            for ca in e["context_aliases"]
+        )
+        for ca in (raw.get("context_aliases") or []):
+            if isinstance(ca, dict) and ca.get("text"):
+                k = (_normalize(ca["text"]), ca.get("context", ""))
+                if k not in existing_ctx:
+                    e["context_aliases"].append(ca)
+                    existing_ctx.add(k)
 
-        # known_relations（去重）
-        existing_rels = {(r["target"], r["relation"]) for r in e["known_relations"]}
-        for rel in raw.get("relations", []):
+        # identity_layers 合并（按 identity 去重）
+        existing_identities = {il.get("identity", "") for il in e["identity_layers"]}
+        for il in (raw.get("identity_layers") or []):
+            if isinstance(il, dict) and il.get("identity") not in existing_identities:
+                e["identity_layers"].append(il)
+                existing_identities.add(il.get("identity", ""))
+
+        # known_relations — 合并（按 target+relation 去重，保留更完整的 temporal）
+        existing_rels = {
+            (_normalize(r.get("target", "")), r.get("relation", "")): i
+            for i, r in enumerate(e["known_relations"])
+        }
+        for rel in (raw.get("known_relations") or raw.get("relations") or []):
             if not isinstance(rel, dict):
                 continue
-            target = str(rel.get("target", "")).strip()
-            relation = str(rel.get("relation", "")).strip()
+            target = rel.get("target", "").strip()
+            relation = rel.get("relation", "").strip()
             if not target or not relation:
                 continue
-            if (target, relation) in existing_rels:
-                continue
-            anchor = _validate_anchor(rel.get("temporal_anchor", "unknown"))
-            position = rel.get("temporal_position", "during")
-            if position not in ("before", "during", "after", "spanning"):
-                position = "during"
-            e["known_relations"].append({
-                "target": target,
-                "relation": relation,
-                "temporal": {"anchor": anchor, "position": position},
-                "note": str(rel.get("note", "")).strip(),
-            })
-            existing_rels.add((target, relation))
+
+            # Normalize temporal (support both old and new schema)
+            temporal = rel.get("temporal") or {}
+            if not isinstance(temporal, dict):
+                temporal = {}
+
+            # Map old schema fields to new schema
+            if "temporal_anchor" in rel and "event_anchor" not in temporal:
+                temporal["event_anchor"] = _validate_anchor(rel["temporal_anchor"])
+            if "temporal_position" in rel and "event_position" not in temporal:
+                temporal["event_position"] = rel["temporal_position"]
+            if "event_anchor" in temporal:
+                temporal["event_anchor"] = _validate_anchor(temporal.get("event_anchor", "unknown"))
+            if "source_anchor" in temporal:
+                temporal["source_anchor"] = _validate_anchor(temporal.get("source_anchor", "unknown"))
+
+            new_rel = {
+                "target":        target,
+                "relation":      relation,
+                "temporal":      temporal,
+                "reliability":   rel.get("reliability", "confirmed"),
+                "confidence":    rel.get("confidence", "confirmed"),
+                "perspective":   rel.get("perspective", "omniscient"),
+                "visibility":    rel.get("visibility", "public"),
+                "is_symmetric":  rel.get("is_symmetric", False),
+                "note":          rel.get("note", ""),
+            }
+
+            rel_key = (_normalize(target), relation)
+            if rel_key in existing_rels:
+                # Merge: prefer more complete temporal info
+                idx = existing_rels[rel_key]
+                old_temporal = e["known_relations"][idx].get("temporal", {})
+                # Keep whichever has more non-null fields
+                if sum(1 for v in temporal.values() if v) > sum(1 for v in old_temporal.values() if v):
+                    e["known_relations"][idx]["temporal"] = temporal
+                if new_rel["note"] and not e["known_relations"][idx]["note"]:
+                    e["known_relations"][idx]["note"] = new_rel["note"]
+            else:
+                e["known_relations"].append(new_rel)
+                existing_rels[rel_key] = len(e["known_relations"]) - 1
 
     result = sorted(merged.values(), key=lambda x: -x["mention_count"])
-    logger.info("Deduplicated: %d unique entities", len(result))
+    logger.info("Deduplicated to %d entities", len(result))
     return result
 
 
@@ -458,8 +673,8 @@ def save_entities(entities: list[dict], path: Path = ENTITIES_PATH) -> None:
     with_description = sum(1 for e in entities if e.get("description"))
 
     output = {
-        "version": "3.1",
-        "description": "崩坏：星穹铁道领域实体词表（优化管线 v2）",
+        "version": "4.0",
+        "description": "崩坏：星穹铁道领域实体词表（优化管线 v4 — 完整时态/可信度/多重身份 schema）",
         "temporal_anchors": TEMPORAL_ANCHORS,
         "stats": {
             "total_entities": len(entities),

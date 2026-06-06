@@ -32,12 +32,16 @@ from urllib.parse import quote
 
 import requests
 
-from starrail_rag.core.models import DialogueLine, DocType, Document
+from starrail_rag.core.models import (
+    DialogueBranch, DialogueLine, DocType, Document, NarrativeLayer,
+    DOCTYPE_TO_NARRATIVE_LAYER,
+)
 from starrail_rag.core.textmap import TextMapResolver
 from starrail_rag.extractors.base import BaseExtractor
 from starrail_rag.extractors.wiki_mission import (
     _fetch_wikitext,
     _expand_plot_options,
+    _branch_result_to_dialogue_lines,
     _WIKI_BASE,
     _SKIP_SECTIONS,
     _HEADING_RE,
@@ -67,34 +71,39 @@ OUTPUT_ROOT = Path("/workspace/output")
 CHAPTER_ORDER = {name: f"{i+1:02d}" for i, name in enumerate(CHAPTER_NAMES)}
 
 
-def _parse_wikitext_scenes(wikitext: str) -> list[tuple[str, list[DialogueLine]]]:
+def _parse_wikitext_scenes(
+    wikitext: str,
+    category: str = "开拓任务",
+) -> list[tuple[str, list[DialogueLine], list[DialogueBranch]]]:
     """
     将 wikitext 解析为场景列表。
-    每个场景是 (scene_title, dialogues) 的元组。
-    scene_title 来自 === 小节标题 ===，空字符串表示无标题场景。
+    每个场景是 (scene_title, dialogues, branches) 的元组。
     """
-    # 展开 {{剧情选项}} 块
-    extra_lines: list[str] = []
-    def _expand_and_remove(m: re.Match) -> str:
-        expanded = _expand_plot_options(m.group(1))
-        extra_lines.extend(expanded)
-        return ""
-    wikitext_clean = _PLOT_OPTION_RE.sub(_expand_and_remove, wikitext)
+    placeholder_map: dict[str, dict] = {}
 
-    lines = wikitext_clean.splitlines() + extra_lines
+    def _mark_and_remove(m: re.Match) -> str:
+        result = _expand_plot_options(m.group(1))
+        key = f"__BRANCH_{len(placeholder_map)}__"
+        placeholder_map[key] = result
+        return "\n" + key + "\n"
 
-    scenes: list[tuple[str, list[DialogueLine]]] = []
+    wikitext_marked = _PLOT_OPTION_RE.sub(_mark_and_remove, wikitext)
+    lines = wikitext_marked.splitlines()
+
+    scenes: list[tuple[str, list[DialogueLine], list[DialogueBranch]]] = []
     current_title = ""
     current_dialogues: list[DialogueLine] = []
+    current_branches: list[DialogueBranch] = []
     seen: set[tuple[str, str]] = set()
     fake_id = 0
     in_skip = False
 
     def _flush():
-        nonlocal current_dialogues, seen
+        nonlocal current_dialogues, current_branches, seen
         if current_dialogues:
-            scenes.append((current_title, current_dialogues))
+            scenes.append((current_title, current_dialogues, current_branches))
         current_dialogues = []
+        current_branches = []
         seen = set()
 
     for raw in lines:
@@ -105,11 +114,8 @@ def _parse_wikitext_scenes(wikitext: str) -> list[tuple[str, list[DialogueLine]]
         hm = _HEADING_RE.match(line)
         if hm:
             heading_text = hm.group(1).strip()
-            # 二级标题（==）通常是「任务相关」「剧情内容」等大节
-            # 三级（===）及以上是具体场景
             heading_level = len(re.match(r'^(=+)', line).group(1))
             if heading_level >= 3:
-                # 新场景开始
                 _flush()
                 current_title = heading_text
             in_skip = heading_text in _SKIP_SECTIONS
@@ -117,6 +123,19 @@ def _parse_wikitext_scenes(wikitext: str) -> list[tuple[str, list[DialogueLine]]
 
         if in_skip:
             continue
+
+        if line in placeholder_map:
+            br_result = placeholder_map[line]
+            new_lines, new_branches = _branch_result_to_dialogue_lines(br_result, fake_id)
+            for dl in new_lines:
+                key = (dl.speaker, dl.text)
+                if key not in seen:
+                    seen.add(key)
+                    current_dialogues.append(dl)
+                    fake_id = dl.sentence_id
+            current_branches.extend(new_branches)
+            continue
+
         if _SKIP_TEMPLATE_RE.match(line):
             continue
         if line.startswith("|") or line.startswith("----"):
@@ -137,14 +156,15 @@ def _parse_wikitext_scenes(wikitext: str) -> list[tuple[str, list[DialogueLine]]
         seen.add(key)
 
         fake_id -= 1
+        is_player = (speaker == "开拓者")
         current_dialogues.append(
-            DialogueLine(sentence_id=fake_id, speaker=speaker, text=text)
+            DialogueLine(sentence_id=fake_id, speaker=speaker, text=text,
+                         is_player_utterance=is_player)
         )
 
     _flush()
 
-    # 过滤空场景
-    return [(t, d) for t, d in scenes if d]
+    return [(t, d, b) for t, d, b in scenes if d]
 
 
 class WikiSceneExtractor(BaseExtractor):
@@ -227,7 +247,7 @@ class WikiSceneExtractor(BaseExtractor):
                     not_found += 1
                     wikitext_cache[mission_name] = []
                     continue
-                scenes = _parse_wikitext_scenes(wikitext)
+                scenes = _parse_wikitext_scenes(wikitext, category="开拓任务")
                 wikitext_cache[mission_name] = scenes
 
             if not scenes:
@@ -235,13 +255,15 @@ class WikiSceneExtractor(BaseExtractor):
 
             wiki_url = _WIKI_BASE + quote(mission_name, safe="")
 
-            for scene_idx, (scene_title, dialogues) in enumerate(scenes):
+            for scene_idx, (scene_title, dialogues, branches) in enumerate(scenes):
                 scene_id = f"scene_{mid}_{scene_idx:03d}"
                 doc = Document(
                     doc_id=scene_id,
                     doc_type=DocType.MAIN_MISSION,
                     title=scene_title or mission_name,
                     dialogues=dialogues,
+                    branches=branches,
+                    narrative_layer=NarrativeLayer.L1_CONFIRMED,
                     metadata={
                         "source": "wiki",
                         "mission_id": mid,
@@ -251,6 +273,8 @@ class WikiSceneExtractor(BaseExtractor):
                         "scene_title": scene_title,
                         "wiki_url": wiki_url,
                         "sentence_count": len(dialogues),
+                        "has_player_choices": bool(branches),
+                        "narrative_layer": NarrativeLayer.L1_CONFIRMED.value,
                     },
                 )
                 chapter_docs.setdefault(chapter_name, []).append(doc)

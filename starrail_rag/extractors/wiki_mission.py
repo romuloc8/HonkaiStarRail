@@ -27,7 +27,10 @@ from urllib.parse import quote
 
 import requests
 
-from starrail_rag.core.models import DialogueLine, DocType, Document
+from starrail_rag.core.models import (
+    DialogueBranch, DialogueLine, DocType, Document,
+    DOCTYPE_TO_NARRATIVE_LAYER, NarrativeLayer,
+)
 from starrail_rag.core.textmap import TextMapResolver
 from starrail_rag.extractors.base import BaseExtractor
 
@@ -105,21 +108,24 @@ _SKIP_SECTIONS = frozenset([
 _SKIP_TEMPLATE_RE = re.compile(r'^\{\{(?!剧情选项)')
 
 
-def _expand_plot_options(block_content: str) -> list[str]:
+def _expand_plot_options(block_content: str) -> dict:
     """
-    解析 {{剧情选项}} 模板内容，返回展开后的 *Speaker：Text 行列表。
+    解析 {{剧情选项}} 模板内容。
 
-    规则:
-    - 提取所有 选项N 文本作为 *开拓者：<选项> 行
-    - 提取所有 剧情N 的 NPC 响应行
-    - 若所有分支 NPC 响应相同 → 合并选项，NPC 响应只写一次
-    - 若分支响应不同 → 每个分支完整保留（体现选项的平行性）
+    返回结构化字典而非扁平字符串列表：
+    {
+        "branches_differ": bool,
+        "option_texts": [str, ...],
+        "branches": [
+            {"id": "A", "option": "选项A文本", "lines": ["*Speaker：Text", ...]},
+            ...
+        ],
+        "merged_lines": ["*Speaker：Text", ...]  # 仅 branches_differ=False 时有意义
+    }
     """
-    # 提取 选项N 文本
     option_texts = re.findall(r'选项\d+\s*=\s*([^|}\n]+)', block_content)
 
-    # 提取各分支 剧情N 对话
-    branches: list[list[str]] = []
+    raw_branches: list[list[str]] = []
     for bm in re.finditer(r'剧情\d+\s*=((?:[^|]|\|(?!选项\d))*)', block_content, re.DOTALL):
         branch_text = bm.group(1)
         lines_in_branch = [
@@ -127,68 +133,188 @@ def _expand_plot_options(block_content: str) -> list[str]:
             for m in _OPTION_DIALOGUE_RE.finditer(branch_text)
         ]
         if lines_in_branch:
-            branches.append(lines_in_branch)
+            raw_branches.append(lines_in_branch)
 
-    if not branches:
-        return []
+    if not raw_branches:
+        return {"branches_differ": False, "option_texts": [], "branches": [], "merged_lines": []}
 
-    all_same = len(set(tuple(b) for b in branches)) == 1
+    all_same = len(set(tuple(b) for b in raw_branches)) == 1
 
-    result: list[str] = []
+    branch_ids = [chr(65 + i) for i in range(len(raw_branches))]
+    branches_structured = [
+        {"id": bid, "option": opt.strip(), "lines": lines}
+        for bid, opt, lines in zip(branch_ids, option_texts, raw_branches)
+    ]
+
     if all_same:
-        # 响应一致 → 合并选项
+        merged: list[str] = []
         if option_texts:
-            merged = " / ".join(t.strip() for t in option_texts if t.strip())
-            result.append(f"*开拓者：{merged}")
-        result.extend(branches[0])
+            merged_label = " / ".join(t.strip() for t in option_texts if t.strip())
+            merged.append(f"*开拓者：{merged_label}")
+        merged.extend(raw_branches[0])
+        return {
+            "branches_differ": False,
+            "option_texts": option_texts,
+            "branches": branches_structured,
+            "merged_lines": merged,
+        }
     else:
-        # 响应不同 → 平行展示每个分支
-        for opt_text, branch_lines in zip(option_texts, branches):
-            if opt_text.strip():
-                result.append(f"*开拓者：{opt_text.strip()}")
-            result.extend(branch_lines)
+        return {
+            "branches_differ": True,
+            "option_texts": option_texts,
+            "branches": branches_structured,
+            "merged_lines": [],  # caller handles branch_differ=True case
+        }
 
-    return result
 
-
-def _parse_wikitext_dialogues(wikitext: str) -> list[DialogueLine]:
+def _branch_result_to_dialogue_lines(
+    result: dict,
+    start_id: int = 0,
+) -> tuple[list[DialogueLine], list[DialogueBranch]]:
     """
-    从 wikitext 中提取对话行，返回有序 DialogueLine 列表。
+    将 _expand_plot_options 的结构化结果转换为 (主对话行列表, 分支列表)。
 
-    步骤:
-    1. 展开 {{剧情选项}} 块（保留玩家选项文本 + 平行/合并分支）
-    2. 按行扫描，跳过非剧情 section
-    3. 提取 *Speaker：Text 格式行
-    4. 去重（相同 speaker+text 只保留首次）
+    - branches_differ=False: 主对话行 = merged_lines，分支列表备用（不影响语义）
+    - branches_differ=True:  主对话行 = 分支A，分支列表保存所有分支；
+                              每行标注 branch_id 和 is_player_utterance
     """
-    # 展开分支选项，替换原块
-    extra_lines: list[str] = []
+    fake_id = start_id
+    main_lines: list[DialogueLine] = []
+    dialogue_branches: list[DialogueBranch] = []
 
-    def _expand_and_remove(m: re.Match) -> str:
-        expanded = _expand_plot_options(m.group(1))
-        extra_lines.extend(expanded)
-        return ""
+    if not result["branches"]:
+        return main_lines, dialogue_branches
 
-    wikitext_clean = _PLOT_OPTION_RE.sub(_expand_and_remove, wikitext)
-    wikitext_clean += "\n" + "\n".join(extra_lines)
+    if not result["branches_differ"]:
+        for raw in result["merged_lines"]:
+            dm = _BULLET_DIALOGUE_RE.match(raw.strip())
+            if not dm:
+                continue
+            speaker = dm.group("speaker").strip()
+            text = dm.group("text").strip()
+            if speaker and text:
+                fake_id -= 1
+                is_player = (speaker == "开拓者")
+                main_lines.append(DialogueLine(
+                    sentence_id=fake_id, speaker=speaker, text=text,
+                    is_player_utterance=is_player,
+                ))
+        # Store all branches in DialogueBranch list for downstream use
+        for b in result["branches"]:
+            branch_lines: list[DialogueLine] = []
+            for raw in b["lines"]:
+                dm = _BULLET_DIALOGUE_RE.match(raw.strip())
+                if not dm:
+                    continue
+                s, t = dm.group("speaker").strip(), dm.group("text").strip()
+                if s and t:
+                    fake_id -= 1
+                    branch_lines.append(DialogueLine(
+                        sentence_id=fake_id, speaker=s, text=t,
+                        is_player_utterance=(s == "开拓者"),
+                        branch_id=b["id"],
+                    ))
+            dialogue_branches.append(DialogueBranch(
+                branch_id=b["id"],
+                option_text=b.get("option", ""),
+                dialogues=branch_lines,
+            ))
+    else:
+        # branches differ — use branch A as primary, preserve all in DialogueBranch
+        for i, b in enumerate(result["branches"]):
+            branch_lines = []
+            # Add player choice line first
+            if b.get("option"):
+                fake_id -= 1
+                main_lines_append = (i == 0)  # only add choice label to main once
+                dl = DialogueLine(
+                    sentence_id=fake_id,
+                    speaker="开拓者",
+                    text=b["option"],
+                    is_player_utterance=True,
+                    branch_id=b["id"],
+                )
+                if main_lines_append:
+                    main_lines.append(dl)
+                branch_lines.append(dl)
+            for raw in b["lines"]:
+                dm = _BULLET_DIALOGUE_RE.match(raw.strip())
+                if not dm:
+                    continue
+                s, t = dm.group("speaker").strip(), dm.group("text").strip()
+                if s and t:
+                    fake_id -= 1
+                    dl = DialogueLine(
+                        sentence_id=fake_id, speaker=s, text=t,
+                        is_player_utterance=(s == "开拓者"),
+                        branch_id=b["id"],
+                    )
+                    if i == 0:  # branch A goes into main dialogue
+                        main_lines.append(dl)
+                    branch_lines.append(dl)
+            dialogue_branches.append(DialogueBranch(
+                branch_id=b["id"],
+                option_text=b.get("option", ""),
+                dialogues=branch_lines,
+            ))
 
-    lines = wikitext_clean.splitlines()
-    dialogues: list[DialogueLine] = []
+    return main_lines, dialogue_branches
+
+
+def _parse_wikitext_dialogues(
+    wikitext: str,
+    category: str = "",
+) -> tuple[list[DialogueLine], list[DialogueBranch]]:
+    """
+    从 wikitext 中提取对话行，返回 (主对话行, 分支列表)。
+
+    主对话行用于常规索引；分支列表保存玩家选项的所有分支，
+    供下游根据 branches_differ 决定如何处理。
+    """
+    # 先收集所有剧情选项块的结构化结果
+    branch_results: list[tuple[int, dict]] = []  # (position_in_text, result)
+    placeholder_map: dict[str, dict] = {}
+
+    def _mark_and_remove(m: re.Match) -> str:
+        result = _expand_plot_options(m.group(1))
+        key = f"__BRANCH_{len(placeholder_map)}__"
+        placeholder_map[key] = result
+        return "\n" + key + "\n"
+
+    wikitext_marked = _PLOT_OPTION_RE.sub(_mark_and_remove, wikitext)
+
+    lines_raw = wikitext_marked.splitlines()
+    main_dialogues: list[DialogueLine] = []
+    all_branches: list[DialogueBranch] = []
     seen: set[tuple[str, str]] = set()
     fake_id = 0
     in_skip = False
 
-    for raw in lines:
+    for raw in lines_raw:
         line = raw.strip()
         if not line:
             continue
 
+        # 章节标题
         hm = _HEADING_RE.match(line)
         if hm:
             in_skip = hm.group(1).strip() in _SKIP_SECTIONS
             continue
 
         if in_skip:
+            continue
+
+        # 还原分支块
+        if line in placeholder_map:
+            br_result = placeholder_map[line]
+            new_lines, new_branches = _branch_result_to_dialogue_lines(br_result, fake_id)
+            for dl in new_lines:
+                key = (dl.speaker, dl.text)
+                if key not in seen:
+                    seen.add(key)
+                    main_dialogues.append(dl)
+                    fake_id = dl.sentence_id
+            all_branches.extend(new_branches)
             continue
 
         if _SKIP_TEMPLATE_RE.match(line):
@@ -211,9 +337,13 @@ def _parse_wikitext_dialogues(wikitext: str) -> list[DialogueLine]:
         seen.add(key)
 
         fake_id -= 1
-        dialogues.append(DialogueLine(sentence_id=fake_id, speaker=speaker, text=text))
+        is_player = (speaker == "开拓者")
+        main_dialogues.append(DialogueLine(
+            sentence_id=fake_id, speaker=speaker, text=text,
+            is_player_utterance=is_player,
+        ))
 
-    return dialogues
+    return main_dialogues, all_branches
 
 
 # -----------------------------------------------------------------------
@@ -330,8 +460,8 @@ class WikiMissionExtractor(BaseExtractor):
         documents: list[Document] = []
         not_found = 0
 
-        # Cache: wiki page name → parsed dialogues (避免同名任务重复请求)
-        wikitext_cache: dict[str, list[DialogueLine]] = {}
+        # Cache: wiki page name → (parsed dialogues, branches)
+        wikitext_cache: dict[str, tuple[list[DialogueLine], list[DialogueBranch]]] = {}
 
         logger.info(
             "Starting wiki extraction for %d missions (delay=%.1fs)",
@@ -353,23 +483,25 @@ class WikiMissionExtractor(BaseExtractor):
                 continue
 
             if mission_name in wikitext_cache:
-                dialogues = wikitext_cache[mission_name]
+                dialogues, branches = wikitext_cache[mission_name]
             else:
                 wikitext = _fetch_wikitext(mission_name, self._session)
                 time.sleep(self._delay)
                 if wikitext is None:
                     not_found += 1
-                    wikitext_cache[mission_name] = []
+                    wikitext_cache[mission_name] = ([], [])
                     logger.debug("No wiki page for mission %d '%s'", mid, mission_name)
                     continue
-                dialogues = _parse_wikitext_dialogues(wikitext)
-                wikitext_cache[mission_name] = dialogues
+                dialogues, branches = _parse_wikitext_dialogues(wikitext, category="开拓任务")
+                wikitext_cache[mission_name] = (dialogues, branches)
 
             doc = Document(
                 doc_id=f"wiki_mission_{mid}",
                 doc_type=DocType.MAIN_MISSION,
                 title=mission_name,
                 dialogues=dialogues,
+                branches=branches,
+                narrative_layer=NarrativeLayer.L1_CONFIRMED,
                 metadata={
                     "source": "wiki",
                     "mission_id": mid,
@@ -378,10 +510,18 @@ class WikiMissionExtractor(BaseExtractor):
                     "chapter_name": chapter_name,
                     "wiki_url": _WIKI_BASE + quote(mission_name, safe=""),
                     "sentence_count": len(dialogues),
+                    "has_player_choices": bool(branches),
+                    "branches_differ": any(
+                        len(set(tuple((d.speaker, d.text) for d in b.dialogues)
+                               for b in [branches[0], branches[i]]) > 1)
+                        if len(branches) > 1 else False
+                        for i in range(1, len(branches))
+                    ) if branches else False,
+                    "narrative_layer": NarrativeLayer.L1_CONFIRMED.value,
                 },
             )
             documents.append(doc)
-            logger.debug("  [%d] '%s': %d lines", mid, mission_name, len(dialogues))
+            logger.debug("  [%d] '%s': %d lines, %d branches", mid, mission_name, len(dialogues), len(branches))
 
         non_empty = sum(1 for d in documents if not d.is_empty())
         logger.info(

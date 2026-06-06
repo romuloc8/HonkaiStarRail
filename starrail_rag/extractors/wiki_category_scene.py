@@ -24,12 +24,16 @@ from pathlib import Path
 
 import requests
 
-from starrail_rag.core.models import DialogueLine, DocType, Document
+from starrail_rag.core.models import (
+    DialogueBranch, DialogueLine, DocType, Document, NarrativeLayer,
+    DOCTYPE_TO_NARRATIVE_LAYER,
+)
 from starrail_rag.core.textmap import TextMapResolver
 from starrail_rag.extractors.base import BaseExtractor
 from starrail_rag.extractors.wiki_mission import (
     _fetch_wikitext,
     _expand_plot_options,
+    _branch_result_to_dialogue_lines,
     _WIKI_BASE,
     _SKIP_SECTIONS,
     _HEADING_RE,
@@ -229,13 +233,17 @@ class WikiCategorySceneExtractor(BaseExtractor):
 
                 wiki_url = _WIKI_BASE + _url_quote(title, safe="")
 
-                for scene_idx, (scene_title, dialogues) in enumerate(scenes):
+                for scene_idx, (scene_title, dialogues, branches) in enumerate(scenes):
                     safe_title = re.sub(r'[^\w\u4e00-\u9fff]', '_', title)
+                    # 根据任务类型推断叙事层次
+                    nl = DOCTYPE_TO_NARRATIVE_LAYER.get(category, NarrativeLayer.L3_CHARACTER_ACCOUNT)
                     doc = Document(
                         doc_id=f"{doc_type_str}_{safe_title}_{scene_idx:03d}",
                         doc_type=DocType.COMPANION_MISSION if "companion" in doc_type_str else DocType.MAIN_MISSION,
                         title=scene_title or title,
                         dialogues=dialogues,
+                        branches=branches,
+                        narrative_layer=nl,
                         metadata={
                             "source": "wiki",
                             "category": category,
@@ -245,6 +253,8 @@ class WikiCategorySceneExtractor(BaseExtractor):
                             "group": group_key,
                             "wiki_url": wiki_url,
                             "sentence_count": len(dialogues),
+                            "has_player_choices": bool(branches),
+                            "narrative_layer": nl.value,
                         },
                     )
                     grouped_docs.setdefault(group_key, []).append(doc)
