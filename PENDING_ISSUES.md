@@ -714,3 +714,26 @@ C is_related_to D (speculation)
 | Canon 层级标注（8.1）| 版本间一致性 | 高 | **P3** |
 | 宇宙地理结构（2.3）| 本体论完整性 | 极高 | **P3** |
 | 角色间知识不对称图（上次）| 动机推理 | 极高 | **P3** |
+
+---
+
+## P5 — 社区整合 Lore 资源（记录在案，暂不提取）
+
+> 来源：2026-06-08 联网调研
+
+以下资源包含玩家社区对游戏 lore 的系统性整理，具备高度参考价值，但属于**非官方内容**，可信度应标注为 `legend`（社区共识，非官方 canon）：
+
+| 资源 | 地址 | 说明 |
+|------|------|------|
+| Raven's Lore Guide | [Fandom 页面](https://honkai-star-rail.fandom.com/wiki/User:Raven.Familiar/Lore_Guides) | 综合 lore 指南，玩家社区最权威整理 |
+| Lore FAQ | [rentry.co/srlorefaq](https://rentry.co/srlorefaq) | 常见 lore 问题与答案 |
+| Navigators List | Google Docs 文档 | 无名客成员详细记录 |
+
+**提取条件**：当系统对某类问题（如「无名客历史」「阿基维利失踪原因」）频繁无法回答时，考虑纳入此类内容，并在 chunk 元数据中明确标注 `reliability: legend, source_type: community_guide`。
+
+**风险**：
+- 社区内容可能包含玩家推断（B 类涌现推断），将其纳入会模糊「官方事实」和「玩家猜测」的边界
+- 不同社区成员的解读可能互相矛盾
+
+**状态**：待决策
+
