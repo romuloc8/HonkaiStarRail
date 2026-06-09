@@ -1,6 +1,6 @@
 {
-  "version": "4.0",
-  "description": "崩坏：星穹铁道领域实体词表（v4 — 属性补全版，使用 DeepSeek API）",
+  "version": "4.1",
+  "description": "崩坏：星穹铁道领域实体词表（v4.1 — 验证后自动修复版）",
   "temporal_anchors": [
     {
       "id": "epoch_titan",
@@ -39590,7 +39590,7 @@
       "source_hint": "",
       "mention_count": 2,
       "disambiguation_note": "",
-      "concept_type": "phenomenon",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "贝洛伯格",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -40829,7 +40829,7 @@
       "source_hint": "",
       "mention_count": 2,
       "disambiguation_note": "",
-      "concept_type": "culture",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "贝洛伯格",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -44137,7 +44137,7 @@
       "source_hint": "",
       "mention_count": 2,
       "disambiguation_note": "",
-      "concept_type": "culture",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "匹诺康尼",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -52397,7 +52397,11 @@
       "status": "alive",
       "primum_mobile": "抹去宇宙的污点，认为诞生是错谬",
       "known_emanators": [
-        "绝灭大君"
+        "绝灭大君",
+        "铁墓",
+        "幻胧",
+        "焚风",
+        "星啸"
       ],
       "cosmic_role": "author_of_calamity",
       "philosophical_stance": "熵之化身，致力于毁灭",
@@ -98513,7 +98517,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -100660,7 +100664,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "匹诺康尼",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -100686,7 +100690,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "匹诺康尼",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -100712,7 +100716,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "匹诺康尼",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -107067,7 +107071,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107092,7 +107096,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107126,7 +107130,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107151,7 +107155,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107176,7 +107180,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107191,7 +107195,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107216,7 +107220,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -107250,7 +107254,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -112606,7 +112610,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -113047,7 +113051,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -118878,7 +118882,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -118909,7 +118913,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -118940,7 +118944,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -118984,7 +118988,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -119005,7 +119009,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "danger_level": "none"
@@ -119031,7 +119035,7 @@
       "source_hint": "",
       "mention_count": 11,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "world_of_origin": "仙舟联盟",
       "is_in_game_fiction": true,
       "associated_aeon_or_path": "岚",
@@ -119216,7 +119220,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -119252,7 +119256,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124348,7 +124352,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124373,7 +124377,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124398,7 +124402,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124423,7 +124427,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124448,7 +124452,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124473,7 +124477,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124498,7 +124502,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124523,7 +124527,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124548,7 +124552,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124573,7 +124577,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124598,7 +124602,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124623,7 +124627,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124648,7 +124652,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124673,7 +124677,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124698,7 +124702,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124723,7 +124727,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124748,7 +124752,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124773,7 +124777,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124798,7 +124802,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -124823,7 +124827,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -125335,7 +125339,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "none"
     },
@@ -131112,7 +131116,7 @@
       "source_hint": "",
       "mention_count": 1,
       "disambiguation_note": "",
-      "concept_type": "item",
+      "concept_type": "in_game_fiction",
       "is_in_game_fiction": true,
       "danger_level": "high"
     },
