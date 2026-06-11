@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# 运行日志和临时文件（可重新生成，不追踪）
+output/*.log
+output/entity_pipeline_raw.jsonl
+output/entity_enrichment_log.jsonl
+output/validation_log.jsonl
+
+# 大型数据库文件（本地运行产物，不追踪）
+output/chroma_db/
+output/bm25_index.pkl
+output/lightrag_db/
+output/lightrag_test/
+output/snapshots/
+
