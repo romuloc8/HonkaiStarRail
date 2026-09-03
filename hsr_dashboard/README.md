@@ -13,6 +13,8 @@
 | **怪物弱点** | 441 种怪物弱点速查表，支持按元素筛选和名称搜索 |
 | **成就** | 全部 1,781 个成就，按系列分组，支持全文搜索 |
 
+另附独立小项目：`hsr_wordle.html`（每日猜角色）、`hsr_relic_sim.html`（遗器词条模拟）、`hsr_library.html`（藏书馆）、`hsr_quiz.html`（命途测验）、`hsr_gacha.html`（抽卡分析）、`hsr_linguistics.html`（台词语言学）、`hsr_cosmos.html`（命途沙盒：星神版银河模拟器，无需构建，直接打开）。
+
 ## 快速开始
 
 ```bash
