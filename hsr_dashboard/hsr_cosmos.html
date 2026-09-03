@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>命途沙盒 · 星神版银河模拟器</title>
+<style>
+:root{--bg:#07090f;--bg2:#10141c;--bg3:#1a2030;--border:#2a3242;--text:#e6edf3;--muted:#8b949e;--gold:#e3b341;font-family:'Segoe UI',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);height:100vh;display:grid;grid-template-columns:270px 1fr 320px;grid-template-rows:auto 1fr;overflow:hidden}
+header{grid-column:1/4;display:flex;align-items:center;gap:1rem;padding:.6rem 1rem;border-bottom:1px solid var(--border);background:var(--bg2)}
+header h1{font-size:1rem;color:var(--gold);font-weight:800}
+header .era{font-size:.95rem;font-weight:700;margin-left:auto}
+header .era small{color:var(--muted);font-weight:400;margin-left:.5rem}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .7rem;cursor:pointer;font-size:.8rem}
+button:hover{border-color:var(--gold)}
+button.on{background:var(--gold);color:#000;border-color:var(--gold)}
+aside{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:.8rem}
+aside.right{border-right:none;border-left:1px solid var(--border)}
+h2{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:.8rem 0 .5rem}
+.aeon{display:flex;align-items:center;gap:.5rem;margin:.35rem 0;font-size:.8rem}
+.aeon .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.aeon label{width:92px;line-height:1.1}
+.aeon label small{display:block;color:var(--muted);font-size:.65rem}
+.aeon input{flex:1;accent-color:var(--gold)}
+.tools{display:flex;flex-wrap:wrap;gap:.3rem}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+main{position:relative;background:radial-gradient(ellipse at center,#0d1220 0%,#07090f 70%)}
+.hud{position:absolute;left:.8rem;bottom:.8rem;font-size:.72rem;color:var(--muted);background:rgba(7,9,15,.7);padding:.4rem .6rem;border-radius:6px;line-height:1.6}
+.legend{position:absolute;right:.8rem;bottom:.8rem;font-size:.7rem;background:rgba(7,9,15,.7);padding:.4rem .6rem;border-radius:6px;display:grid;grid-template-columns:1fr 1fr;gap:.1rem .8rem}
+.legend span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.3rem;background:var(--c)}
+.log{font-size:.76rem;line-height:1.55}
+.log div{padding:.3rem 0;border-bottom:1px solid var(--border)}
+.log b{color:var(--gold);font-weight:600;margin-right:.3rem}
+.inspect{font-size:.8rem;background:var(--bg3);border-radius:8px;padding:.6rem;line-height:1.6;min-height:60px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;font-size:.75rem}
+.stats div{background:var(--bg3);border-radius:6px;padding:.3rem .5rem}
+.stats b{display:block;font-size:1rem}
+#spark{width:100%;height:50px;background:var(--bg3);border-radius:6px;margin-top:.4rem}
+textarea{width:100%;height:80px;background:var(--bg3);color:var(--muted);border:1px solid var(--border);border-radius:6px;font-size:.7rem;padding:.4rem;display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>✦ 命途沙盒</h1>
+  <button id="playBtn" onclick="togglePlay()">▶ 运行</button>
+  <button onclick="setSpeed(1)" class="spd on">1×</button><button onclick="setSpeed(4)" class="spd">4×</button><button onclick="setSpeed(12)" class="spd">12×</button>
+  <button onclick="reset()">↻ 重生银河</button>
+  <div class="era" id="era">琥珀纪 2158 纪<small>第 0 年</small></div>
+</header>
+
+<aside>
+  <h2>星神的注视 · 影响强度</h2>
+  <div id="aeons"></div>
+  <h2>干预工具（点击星球）</h2>
+  <div class="tools" id="tools"></div>
+  <h2>说明</h2>
+  <div style="font-size:.72rem;color:var(--muted);line-height:1.6">
+    每个星球有一条主导命途。星神的「注视」越强，其命途的规则越频繁地作用于银河：毁灭扩散、存护筑壁、丰饶催生孑遗、巡猎清剿、虚无侵蚀、同谐合众、欢愉制造荒诞、开拓铺设星轨、记忆保存忆质。<br>点击星球可施加干预。观察哪种秩序会最终统治银河。
+  </div>
+</aside>
+
+<main>
+  <canvas id="cv"></canvas>
+  <div class="hud" id="hud"></div>
+  <div class="legend" id="legend"></div>
+</main>
+
+<aside class="right">
+  <h2>星球</h2>
+  <div class="inspect" id="inspect">点击一颗星球查看</div>
+  <h2>银河统计</h2>
+  <div class="stats" id="stats"></div>
+  <canvas id="spark"></canvas>
+  <h2>史书 <button style="float:right;font-size:.7rem" onclick="exportLog()">导出</button></h2>
+  <textarea id="exportArea"></textarea>
+  <div class="log" id="log"></div>
+</aside>
+
+<script>
+// ───────────── 命途 / 星神 ─────────────
+const PATHS = {
+  Destruction:{zh:'毁灭',aeon:'纳努克',c:'#e05c5c',desc:'反物质军团扫过之处，只留烬土。'},
+  Preservation:{zh:'存护',aeon:'克里珀',c:'#5b9bd5',desc:'筑起壁垒，抵御一切外来之物。'},
+  Hunt:{zh:'巡猎',aeon:'岚',c:'#70ad47',desc:'追猎丰饶孑遗，直至根除。'},
+  Erudition:{zh:'智识',aeon:'博识尊',c:'#4472c4',desc:'科技指数增长，抵抗衰亡。'},
+  Abundance:{zh:'丰饶',aeon:'药师',c:'#ffd966',desc:'赐予长生，代价是异化为孑遗。'},
+  Nihility:{zh:'虚无',aeon:'IX',c:'#9966cc',desc:'意义流失，文明自行熄灭。'},
+  Harmony:{zh:'同谐',aeon:'希佩',c:'#47b5c8',desc:'相邻文明合众为一。'},
+  Elation:{zh:'欢愉',aeon:'阿哈',c:'#ff8c69',desc:'荒诞事件随机降临。'},
+  Trailblaze:{zh:'开拓',aeon:'阿基维利(已殁)',c:'#e3b341',desc:'铺设星轨，连接孤立的世界。'},
+  Remembrance:{zh:'记忆',aeon:'浮黎',c:'#c0a0e0',desc:'保存忆质，让逝去的世界得以复苏。'},
+};
+const STATES = {normal:'常态',ruined:'烬土',walled:'壁垒',blessed:'丰饶之地',remnant:'孑遗巢穴',hollow:'虚无空壳',dream:'合众',archive:'忆质封存'};
+const STATE_C = {normal:'#cfd6e0',ruined:'#4a2a2a',walled:'#5b9bd5',blessed:'#ffd966',remnant:'#9aa63a',hollow:'#3a2d55',dream:'#47b5c8',archive:'#c0a0e0'};
+
+// ───────────── 名字生成（星穹风格） ─────────────
+const SYL_A=['雅利','贝洛','匹诺','翁法','赫尔','拉夫','艾普','西格','甘索','尼古','塔利','茨冈','萨尔','格拉','奥博','哈托','阿米','弁才','露莎','欧姆','克拉','沃尔','伊卡','珀西'];
+const SYL_B=['洛','伯格','康尼','罗斯','多林','卡迪奥','瑟隆','玛','托','尔','亚','尼亚','索图','默','洛斯','彼亚','兰','天','卡','弗','特','图','洛克','斐'];
+const SUF=['','','','-VI','-C4','贰','-Ⅲ','星','界','之环'];
+function pname(){return SYL_A[R(SYL_A.length)]+SYL_B[R(SYL_B.length)]+SUF[R(SUF.length)];}
+function R(n){return Math.floor(Math.random()*n);}
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+// ───────────── 状态 ─────────────
+let stars=[], rails=[], legions=[], fleets=[], year=0, playing=false, speed=1, tool='stellaron', selected=null, history=[], logs=[];
+const gaze={}; Object.keys(PATHS).forEach(k=>gaze[k]=50);
+gaze.Trailblaze=35; // 阿基维利已殁，星轨只剩余晖
+
+function reset(){
+  stars=[];rails=[];legions=[];fleets=[];year=0;history=[];logs=[];selected=null;
+  const N=130, cx=.5, cy=.5;
+  const keys=Object.keys(PATHS);
+  for(let i=0;i<N;i++){
+    const arm=i%3, t=i/N*4*Math.PI+arm*2.094, r=.06+i/N*.42;
+    const x=cx+Math.cos(t)*r*rnd(.85,1.15)*1.15, y=cy+Math.sin(t)*r*rnd(.85,1.15)*.8;
+    const path=keys[R(keys.length)];
+    stars.push({id:i,x,y,name:pname(),path,state:'normal',pop:rnd(.2,1),tech:rnd(.1,.5),wall:0,bless:0,memory:[],age:0,size:rnd(2,4.2)});
+  }
+  // 初始星轨：最近邻连接
+  stars.forEach(s=>{const n=nearest(s,3);n.forEach(o=>{if(!rails.find(r=>(r.a===s.id&&r.b===o.id)||(r.a===o.id&&r.b===s.id)))rails.push({a:s.id,b:o.id,hp:rnd(.4,1)});});});
+  log('序章','星穹列车重新起航。银河中有 '+N+' 个文明，各自追随不同的命途。');
+  draw(); renderSide();
+}
+function nearest(s,k,filter){return stars.filter(o=>o!==s&&(!filter||filter(o))).sort((a,b)=>d2(a,s)-d2(b,s)).slice(0,k);}
+function d2(a,b){return (a.x-b.x)**2+(a.y-b.y)**2;}
+function linked(s){return rails.filter(r=>r.a===s.id||r.b===s.id).map(r=>stars[r.a===s.id?r.b:r.a]);}
+function eraLabel(){return `琥珀纪 ${2158+Math.floor(year/120)} 纪`;}
+function log(tag,text){logs.unshift({y:year,tag,text});if(logs.length>200)logs.pop();}
+
+// ───────────── 每年 tick ─────────────
+function tick(){
+  year++;
+  const g=k=>gaze[k]/100;
+  // 人口/科技自然演化
+  stars.forEach(s=>{
+    s.age++;
+    if(s.state==='ruined'||s.state==='hollow'||s.state==='archive'){s.pop=Math.max(0,s.pop-.002);return;}
+    const growth=(.004+s.tech*.006)*(s.state==='blessed'?3:1)*(s.state==='dream'?1.4:1);
+    s.pop=Math.min(2.5,s.pop+growth);
+    if(s.path==='Erudition')s.tech=Math.min(1,s.tech+.003*g('Erudition'));
+    else s.tech=Math.min(1,s.tech+.0005);
+  });
+
+  // 存护：筑壁
+  stars.forEach(s=>{if(s.path==='Preservation'&&s.state!=='ruined'){s.wall=Math.min(1,s.wall+.01*g('Preservation'));if(s.wall>.6&&s.state==='normal'){s.state='walled';log('存护',`「${s.name}」在琥珀王的注视下筑起壁垒。`);}}});
+
+  // 毁灭：军团生成与蔓延
+  if(Math.random()<.007*g('Destruction')&&legions.length<5){
+    const src=stars.filter(s=>s.state!=='ruined')[R(stars.length)];
+    if(src){legions.push({at:src.id,life:50+R(80)});ruin(src,'反物质军团于「'+src.name+'」降临，烬土纪元拉开序幕。');}
+  }
+  legions.forEach(L=>{
+    L.life--;
+    const here=stars[L.at];
+    if(Math.random()<.25*g('Destruction')){
+      const targets=nearest(here,4,o=>o.state!=='ruined');
+      if(targets.length){const t=targets[R(targets.length)];
+        if(t.state==='walled'&&t.wall>0){t.wall-=.25;if(t.wall<=0){t.state='normal';log('毁灭',`「${t.name}」的壁垒在反物质军团的围攻下崩塌。`);}}
+        else{ruin(t,`「毁灭」军锋掠及「${t.name}」。`);L.at=t.id;}
+      }
+    }
+  });
+  legions=legions.filter(L=>L.life>0);
+
+  // 丰饶：赐福 → 孑遗
+  stars.forEach(s=>{
+    if(s.state==='normal'&&s.path==='Abundance'&&Math.random()<.004*g('Abundance')){s.state='blessed';s.bless=0;log('丰饶',`药师的目光落在「${s.name}」，居民获得长生。`);}
+    if(s.state==='blessed'){s.bless++;if(s.bless>120+R(200)){s.state='remnant';log('丰饶',`「${s.name}」的长生者异化为丰饶孑遗，巢穴开始扩张。`);}}
+    if(s.state==='remnant'&&Math.random()<.006*g('Abundance')){const n=nearest(s,2,o=>o.state==='normal')[0];if(n){n.state='blessed';n.bless=60;}}
+  });
+
+  // 巡猎：仙舟舰队清剿孑遗
+  const remn=stars.filter(s=>s.state==='remnant');
+  if(remn.length&&Math.random()<.25*g('Hunt')&&fleets.length<8){const hunter=stars.filter(s=>s.path==='Hunt'&&s.state!=='ruined')[0]||stars[R(stars.length)];const t=remn[R(remn.length)];fleets.push({from:hunter.id,to:t.id,p:0});}
+  fleets.forEach(f=>{f.p+=.08;if(f.p>=1){const t=stars[f.to];if(t.state==='remnant'||t.state==='blessed'){t.state='normal';t.pop*=.5;t.bless=0;log('巡猎',`云骑舰队抵达「${t.name}」，孑遗被尽数清剿，一半人口随之逝去。`);}}});
+  fleets=fleets.filter(f=>f.p<1);
+
+  // 虚无：意义流失
+  stars.forEach(s=>{if(s.state==='normal'&&(s.path==='Nihility'||linked(s).some(o=>o.state==='hollow'))&&Math.random()<.012*g('Nihility')){s.pop*=.6;if(s.pop<.15){s.state='hollow';log('虚无',`「${s.name}」的居民不再追问任何意义，文明悄然熄灭。`);}}});
+
+  // 同谐：合众
+  stars.forEach(s=>{if(s.path==='Harmony'&&s.state==='normal'&&Math.random()<.01*g('Harmony')){const ns=linked(s).filter(o=>o.state==='normal'&&o.path!=='Harmony');if(ns.length){const o=ns[R(ns.length)];o.path='Harmony';o.state='dream';s.state='dream';const avg=(s.pop+o.pop)/2;s.pop=o.pop=avg;log('同谐',`「${s.name}」与「${o.name}」在希佩的和声中合众为一。`);}}});
+
+  // 欢愉：阿哈的荒诞
+  if(Math.random()<.004*g('Elation')){
+    const evs=[
+      s=>{const o=stars[R(stars.length)];[s.path,o.path]=[o.path,s.path];return `文字逃逸现象：「${s.name}」与「${o.name}」的历史书互换了内容，两地居民就此改信对方的命途。`;},
+      s=>{s.pop=Math.min(2.5,s.pop*1.5);return `「${s.name}」上空出现一分钟的哭泣裂隙，居民哭完后决定大办庆典，人口莫名暴涨。`;},
+      s=>{if(s.state==='ruined'){s.state='normal';s.pop=.3;return `阿哈觉得「${s.name}」的烬土太无聊了，随手把它恢复了原样。`;}s.tech=Math.max(0,s.tech-.3);return `「${s.name}」的全部科研成果被改写成笑话集，科技倒退。`;},
+      s=>{const keys=Object.keys(PATHS);s.path=keys[R(keys.length)];return `一位假面愚者在「${s.name}」当选元首，该星球的命途被随机改写为「${PATHS[s.path].zh}」。`;}
+    ];
+    const s=stars[R(stars.length)];log('欢愉',evs[R(evs.length)](s));
+  }
+
+  // 开拓：星轨维护与铺设
+  rails.forEach(r=>{r.hp-=.0006*(1-g('Trailblaze'));});
+  rails=rails.filter(r=>{if(r.hp<=0){log('开拓',`「${stars[r.a].name}」—「${stars[r.b].name}」之间的星轨因无人维护而断裂。`);return false;}return true;});
+  if(Math.random()<.06*g('Trailblaze')){const s=stars[R(stars.length)];const cand=nearest(s,6,o=>!linked(s).includes(o));const o=cand[R(cand.length)];if(o&&s.state!=='ruined'&&o.state!=='ruined'){rails.push({a:s.id,b:o.id,hp:1});}}
+  // 开拓：沿星轨重新殖民烬土
+  stars.forEach(s=>{if((s.state==='ruined'||s.state==='hollow')&&Math.random()<.01*g('Trailblaze')){const src=linked(s).find(o=>o.state!=='ruined'&&o.state!=='hollow'&&o.state!=='archive'&&o.pop>.8);if(src){s.state='normal';s.path=src.path;s.pop=.2;s.archived=false;src.pop*=.85;log('开拓',`来自「${src.name}」的开拓者沿星轨抵达「${s.name}」，在烬土上重建家园。`);}}});
+  // 星轨传播科技
+  rails.forEach(r=>{const a=stars[r.a],b=stars[r.b];const m=Math.max(a.tech,b.tech);a.tech+= (m-a.tech)*.01;b.tech+=(m-b.tech)*.01;});
+
+  // 记忆：忆质保存与复苏
+  stars.forEach(s=>{
+    if(s.path==='Remembrance'&&s.state!=='ruined'&&Math.random()<.01*g('Remembrance')){
+      const dead=stars.filter(o=>o.state==='ruined'||o.state==='hollow');
+      if(dead.length){const o=dead[R(dead.length)];if(!o.archived){o.archived=true;o.state='archive';log('记忆',`「${s.name}」的忘却之庭收录了「${o.name}」的全部忆质。`);}}
+    }
+    if(s.state==='archive'&&Math.random()<.02*g('Remembrance')){s.state='normal';s.pop=.25;s.archived=false;log('记忆',`凭借封存的忆质，「${s.name}」的文明在废墟上复苏。`);}
+  });
+
+  // 记录
+  if(year%5===0){const c={};Object.keys(STATES).forEach(k=>c[k]=0);stars.forEach(s=>c[s.state]++);history.push(c);if(history.length>400)history.shift();}
+}
+function ruin(s,text){if(s.state==='ruined')return;s.state='ruined';s.pop=0;s.wall=0;log('毁灭',text);}
+
+// ───────────── 干预 ─────────────
+const TOOLS={stellaron:'✦ 投放星核',inspect:'🔍 查看',Preservation:'赐福·存护',Abundance:'赐福·丰饶',Erudition:'赐福·智识',Harmony:'赐福·同谐',Remembrance:'赐福·记忆',rail:'铺设星轨'};
+function applyTool(s){
+  if(tool==='inspect'){selected=s;return;}
+  if(tool==='stellaron'){s.state='normal';s.pop*=.6;legions.push({at:s.id,life:60});ruin(s,`一枚星核坠落于「${s.name}」，灾祸随之而来；星核猎手的身影出现在轨道上。`);return;}
+  if(tool==='rail'){const o=nearest(s,1)[0];rails.push({a:s.id,b:o.id,hp:1});log('开拓',`无名客在「${s.name}」与「${o.name}」之间铺设了新的星轨。`);return;}
+  s.path=tool;if(s.state==='ruined'||s.state==='hollow'){s.state='normal';s.pop=.2;}
+  log(PATHS[tool].zh,`${PATHS[tool].aeon}回应了祈祷：「${s.name}」改信「${PATHS[tool].zh}」。`);
+}
+
+// ───────────── 渲染 ─────────────
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+function resize(){cv.width=cv.clientWidth*devicePixelRatio;cv.height=cv.clientHeight*devicePixelRatio;}
+window.addEventListener('resize',()=>{resize();draw();});
+function P(s){return [s.x*cv.width,s.y*cv.height];}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const dpr=devicePixelRatio;
+  // rails
+  rails.forEach(r=>{const [ax,ay]=P(stars[r.a]),[bx,by]=P(stars[r.b]);ctx.strokeStyle=`rgba(227,179,65,${.08+r.hp*.25})`;ctx.lineWidth=dpr;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();});
+  // fleets
+  fleets.forEach(f=>{const a=stars[f.from],b=stars[f.to];const [ax,ay]=P(a),[bx,by]=P(b);ctx.fillStyle='#70ad47';ctx.beginPath();ctx.arc(ax+(bx-ax)*f.p,ay+(by-ay)*f.p,2.5*dpr,0,7);ctx.fill();});
+  // stars
+  stars.forEach(s=>{
+    const [x,y]=P(s);const r=(s.size+s.pop*2.2)*dpr;
+    ctx.beginPath();ctx.arc(x,y,r+6*dpr,0,7);ctx.fillStyle=PATHS[s.path].c+'22';ctx.fill();
+    if(s.state==='walled'){ctx.strokeStyle='#5b9bd5';ctx.lineWidth=2*dpr;ctx.beginPath();ctx.arc(x,y,r+3*dpr,0,7);ctx.stroke();}
+    ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=STATE_C[s.state];if(s.state==='normal')ctx.fillStyle=PATHS[s.path].c;ctx.fill();
+    if(s===selected){ctx.strokeStyle='#fff';ctx.lineWidth=1.5*dpr;ctx.beginPath();ctx.arc(x,y,r+9*dpr,0,7);ctx.stroke();}
+  });
+  legions.forEach(L=>{const [x,y]=P(stars[L.at]);ctx.strokeStyle='rgba(224,92,92,.8)';ctx.lineWidth=1.5*dpr;ctx.beginPath();ctx.arc(x,y,(10+Math.sin(year/2)*3)*dpr,0,7);ctx.stroke();});
+  document.getElementById('era').innerHTML=`${eraLabel()}<small>第 ${year} 年</small>`;
+}
+function renderSide(){
+  const c={};Object.keys(STATES).forEach(k=>c[k]=0);stars.forEach(s=>c[s.state]++);
+  document.getElementById('stats').innerHTML=Object.entries(STATES).map(([k,v])=>`<div style="border-left:3px solid ${STATE_C[k]}"><b>${c[k]}</b>${v}</div>`).join('');
+  const dom={};stars.forEach(s=>{if(s.state!=='ruined'&&s.state!=='hollow')dom[s.path]=(dom[s.path]||0)+1;});
+  const top=Object.entries(dom).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('hud').innerHTML=`存续文明 ${stars.length-c.ruined-c.hollow} / ${stars.length}　星轨 ${rails.length} 条　军团 ${legions.length}　${top?`主导命途：<span style="color:${PATHS[top[0]].c}">${PATHS[top[0]].zh}</span>（${top[1]} 星）`:''}`;
+  document.getElementById('log').innerHTML=logs.slice(0,60).map(l=>`<div><b>${l.tag}</b><span style="color:var(--muted)">${2158+Math.floor(l.y/120)}纪·${l.y}年</span> ${l.text}</div>`).join('');
+  if(selected){const s=selected;document.getElementById('inspect').innerHTML=`<b style="color:${PATHS[s.path].c}">${s.name}</b>　${STATES[s.state]}<br>命途：${PATHS[s.path].zh}（${PATHS[s.path].aeon}）<br>人口 ${(s.pop*10).toFixed(1)} 亿　科技 ${(s.tech*100).toFixed(0)}%　壁垒 ${(s.wall*100).toFixed(0)}%<br>星轨连接 ${linked(s).length} 处<br><span style="color:var(--muted)">${PATHS[s.path].desc}</span>`;}
+  // sparkline
+  const sp=document.getElementById('spark');sp.width=sp.clientWidth*devicePixelRatio;sp.height=50*devicePixelRatio;const g=sp.getContext('2d');
+  if(history.length>1){const W=sp.width,H=sp.height,n=history.length;let acc=new Array(n).fill(0);
+    ['ruined','hollow','remnant','walled','dream','archive','blessed','normal'].forEach(k=>{g.beginPath();g.moveTo(0,H);history.forEach((h,i)=>{acc[i]+=h[k];g.lineTo(i/(n-1)*W,H-acc[i]/stars.length*H);});g.lineTo(W,H);g.closePath();g.fillStyle=STATE_C[k];g.fill();});}
+}
+function exportLog(){const ta=document.getElementById('exportArea');ta.style.display='block';ta.value=`《银河史·${eraLabel()}》\n`+[...logs].reverse().map(l=>`${2158+Math.floor(l.y/120)}纪${l.y}年　【${l.tag}】${l.text}`).join('\n');ta.select();}
+
+// ───────────── UI ─────────────
+document.getElementById('aeons').innerHTML=Object.entries(PATHS).map(([k,p])=>`<div class="aeon"><span class="dot" style="background:${p.c}"></span><label>${p.zh}<small>${p.aeon}</small></label><input type="range" min="0" max="100" value="${gaze[k]}" oninput="gaze['${k}']=+this.value"></div>`).join('');
+document.getElementById('tools').innerHTML=Object.entries(TOOLS).map(([k,v])=>`<button class="tl ${k===tool?'on':''}" onclick="tool='${k}';document.querySelectorAll('.tl').forEach(b=>b.classList.toggle('on',b.textContent==='${v}'))">${v}</button>`).join('');
+document.getElementById('legend').innerHTML=Object.entries(STATES).map(([k,v])=>`<span style="--c:${STATE_C[k]}">${v}</span>`).join('');
+cv.addEventListener('click',e=>{const rect=cv.getBoundingClientRect();const mx=(e.clientX-rect.left)/rect.width,my=(e.clientY-rect.top)/rect.height;let best=null,bd=1;stars.forEach(s=>{const d=(s.x-mx)**2+(s.y-my)**2;if(d<bd){bd=d;best=s;}});if(best&&bd<.0009){selected=best;applyTool(best);draw();renderSide();}});
+function togglePlay(){playing=!playing;document.getElementById('playBtn').textContent=playing?'❚❚ 暂停':'▶ 运行';}
+function setSpeed(n){speed=n;document.querySelectorAll('.spd').forEach(b=>b.classList.toggle('on',b.textContent===n+'×'));}
+let acc=0;function loop(){if(playing){for(let i=0;i<speed;i++)tick();draw();if(++acc%3===0)renderSide();}requestAnimationFrame(loop);}
+resize();reset();loop();
+</script>
+</body>
+</html>
