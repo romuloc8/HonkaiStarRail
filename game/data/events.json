@@ -1,0 +1,104 @@
+[
+  {
+    "id": "pom_pom_audit",
+    "title": "帕姆的账本",
+    "trigger": "any",
+    "text": "帕姆抱着一摞账本在车厢里转圈：「乘客！这个月的星琼账目对不上——多出来了一笔！」",
+    "options": [
+      { "text": "多出来的就当列车补贴吧", "effects": [ { "type": "jade_percent", "value": 0.05 } ] },
+      { "text": "请帕姆重新核算，顺便整理一下素材库", "effects": [ { "type": "material", "value": 15 } ] }
+    ]
+  },
+  {
+    "id": "march_photo",
+    "title": "三月七的摄影大赛",
+    "trigger": "any",
+    "text": "三月七举着相机冲过来：「快看镜头！这张要拿去参加银河摄影大赛的！」",
+    "options": [
+      { "text": "摆个帅气的姿势", "effects": [ { "type": "material", "value": 10 } ] },
+      { "text": "趁机给列车打广告，拉点赞助", "effects": [ { "type": "jade_percent", "value": 0.03 } ] }
+    ]
+  },
+  {
+    "id": "danheng_archives",
+    "title": "丹恒的档案",
+    "trigger": "any",
+    "text": "丹恒翻着星穹列车的旧档案，发现了一份从未兑现的开拓补贴申请表。",
+    "options": [
+      { "text": "现在就去申请", "effects": [ { "type": "jade_percent", "value": 0.05 } ] },
+      { "text": "先把档案里的旧材料整理出来", "effects": [ { "type": "material", "value": 20 } ] }
+    ]
+  },
+  {
+    "id": "himeko_coffee",
+    "title": "姬子的咖啡时间",
+    "trigger": "any",
+    "text": "姬子端着一壶刚煮好的咖啡：「尝尝？用新到的燃料炉加热的，顺便聊聊接下来的航线。」",
+    "options": [
+      { "text": "喝一杯，顺便讨论航线", "effects": [ { "type": "fuel", "value": 40 } ] },
+      { "text": "还是省着点燃料吧", "effects": [ { "type": "material", "value": 10 } ] }
+    ]
+  },
+  {
+    "id": "welt_umbrella",
+    "title": "瓦尔特的雨伞",
+    "trigger": "any",
+    "text": "瓦尔特慢条斯理地擦拭着他的雨伞：「年轻人，想听听我在另一个世界旅行的故事吗？」",
+    "options": [
+      { "text": "洗耳恭听", "effects": [ { "type": "material", "value": 25 } ] },
+      { "text": "下次吧，先去赚点星琼", "effects": [ { "type": "jade_percent", "value": 0.04 } ] }
+    ]
+  },
+  {
+    "id": "space_debris",
+    "title": "漂浮的残骸",
+    "trigger": "any",
+    "text": "航线上漂着一艘废弃货船的残骸，雷达显示里面还有些东西在闪光。",
+    "options": [
+      { "text": "靠近打捞", "effects": [ { "type": "material", "value": 30 }, { "type": "fuel", "value": -20 } ] },
+      { "text": "绕路通过，省下维修费", "effects": [ { "type": "jade_percent", "value": 0.03 } ] }
+    ]
+  },
+  {
+    "id": "herta_puppet",
+    "title": "黑塔的人偶",
+    "trigger": "any",
+    "text": "一个黑塔人偶突然出现在车厢里：「哼，星琼不是这么用的。帮我运个东西，我给你报销。」",
+    "options": [
+      { "text": "接单", "effects": [ { "type": "jade_percent", "value": 0.05 } ] },
+      { "text": "拒绝，并请她把人偶带走", "effects": [ { "type": "material", "value": 10 } ] }
+    ]
+  },
+  {
+    "id": "jarilo_snow",
+    "title": "贝洛伯格的风雪",
+    "trigger": "arrival",
+    "planet": "jarilo_vi",
+    "text": "列车穿过雅利洛-Ⅵ的风雪，贝洛伯格的银鬃铁卫在站台上例行检查货物。",
+    "options": [
+      { "text": "出示星穹列车的通行证", "effects": [ { "type": "fuel", "value": 50 } ] },
+      { "text": "用一点星琼「打点」一下", "effects": [ { "type": "jade_percent", "value": -0.03 }, { "type": "material", "value": 25 } ] }
+    ]
+  },
+  {
+    "id": "luofu_market",
+    "title": "罗浮的星槎港",
+    "trigger": "arrival",
+    "planet": "xianzhou_luofu",
+    "text": "仙舟「罗浮」的星槎港熙熙攘攘，一位狐人商贩凑过来兜售「绝对正品」的开拓纪念品。",
+    "options": [
+      { "text": "买一个，支持当地经济", "effects": [ { "type": "jade_percent", "value": -0.05 }, { "type": "material", "value": 40 } ] },
+      { "text": "婉拒，拍照留念就好", "effects": [ { "type": "jade_percent", "value": 0.02 } ] }
+    ]
+  },
+  {
+    "id": "trailblaze_signal",
+    "title": "开拓的信号",
+    "trigger": "any",
+    "text": "列车收到一段微弱的信号：某颗不知名的星球正在呼唤开拓者。",
+    "options": [
+      { "text": "记录坐标，日后再说", "effects": [ { "type": "material", "value": 15 } ] },
+      { "text": "转发给星际和平公司换点情报费", "effects": [ { "type": "jade_percent", "value": 0.05 } ] }
+    ]
+  }
+]

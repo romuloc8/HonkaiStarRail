@@ -1,0 +1,8 @@
+# Godot 4 缓存与导出产物
+.godot/
+*.tmp
+export/
+build/
+*.xcodeproj/
+*.xcworkspace/
+.DS_Store

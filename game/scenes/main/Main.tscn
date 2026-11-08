@@ -1,0 +1,112 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/main/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scenes/main/StarField.gd" id="2_stars"]
+[ext_resource type="PackedScene" path="res://scenes/train/TrainTab.tscn" id="3_train"]
+[ext_resource type="PackedScene" path="res://scenes/characters/CharactersTab.tscn" id="4_chars"]
+[ext_resource type="PackedScene" path="res://scenes/starmap/StarMapTab.tscn" id="5_map"]
+[ext_resource type="PackedScene" path="res://scenes/settings/SettingsTab.tscn" id="6_settings"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.039, 0.055, 0.137, 1)
+
+[node name="StarField" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stars")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="SafeArea/Layout"]
+layout_mode = 2
+
+[node name="Resources" type="HBoxContainer" parent="SafeArea/Layout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Content" type="Control" parent="SafeArea/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TrainTab" parent="SafeArea/Layout/Content" instance=ExtResource("3_train")]
+layout_mode = 1
+
+[node name="CharactersTab" parent="SafeArea/Layout/Content" instance=ExtResource("4_chars")]
+visible = false
+layout_mode = 1
+
+[node name="StarMapTab" parent="SafeArea/Layout/Content" instance=ExtResource("5_map")]
+visible = false
+layout_mode = 1
+
+[node name="SettingsTab" parent="SafeArea/Layout/Content" instance=ExtResource("6_settings")]
+visible = false
+layout_mode = 1
+
+[node name="TabBar" type="HBoxContainer" parent="SafeArea/Layout"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TrainButton" type="Button" parent="SafeArea/Layout/TabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_pressed = true
+text = "列车"
+
+[node name="CharactersButton" type="Button" parent="SafeArea/Layout/TabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "角色"
+
+[node name="StarMapButton" type="Button" parent="SafeArea/Layout/TabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "星图"
+
+[node name="SettingsButton" type="Button" parent="SafeArea/Layout/TabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+text = "设置"
+
+[node name="Popups" type="CanvasLayer" parent="."]
+layer = 10

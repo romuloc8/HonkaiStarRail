@@ -1,0 +1,38 @@
+[
+  {
+    "id": "herta_station",
+    "name": "空间站「黑塔」",
+    "desc": "漂浮在星海中的研究空间站，星穹列车的起点。",
+    "color": "#5b8def",
+    "fuel_cost": 0,
+    "unlocks": {
+      "cars": ["power", "passenger"],
+      "characters": ["march7", "danheng"],
+      "dispatch_slots": 1
+    }
+  },
+  {
+    "id": "jarilo_vi",
+    "name": "雅利洛-Ⅵ",
+    "desc": "被永冬笼罩的星球，贝洛伯格的炉火仍在燃烧。",
+    "color": "#a8d8ff",
+    "fuel_cost": 500,
+    "unlocks": {
+      "cars": ["cargo"],
+      "characters": ["himeko"],
+      "dispatch_slots": 0
+    }
+  },
+  {
+    "id": "xianzhou_luofu",
+    "name": "仙舟「罗浮」",
+    "desc": "巡猎的仙舟，星槎港永远熙熙攘攘。",
+    "color": "#d9b45b",
+    "fuel_cost": 5000,
+    "unlocks": {
+      "cars": [],
+      "characters": ["welt"],
+      "dispatch_slots": 1
+    }
+  }
+]

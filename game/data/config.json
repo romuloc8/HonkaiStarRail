@@ -1,0 +1,39 @@
+{
+  "save_version": 1,
+  "base_production": {
+    "jade": 1.0,
+    "fuel": 0.4,
+    "material": 0.0
+  },
+  "resources": [
+    { "id": "jade", "name": "星琼", "color": "#d9b45b" },
+    { "id": "fuel", "name": "燃料", "color": "#5fb8ff" },
+    { "id": "material", "name": "素材", "color": "#7fd68a" }
+  ],
+  "offline": {
+    "base_cap_seconds": 28800,
+    "min_elapsed_seconds": 10
+  },
+  "travel": {
+    "base_seconds": 60
+  },
+  "events": {
+    "online_interval_seconds": 600
+  },
+  "dispatch": {
+    "durations": [
+      { "id": "short", "name": "10 分钟", "seconds": 600, "material": 10 },
+      { "id": "medium", "name": "30 分钟", "seconds": 1800, "material": 35 },
+      { "id": "long", "name": "2 小时", "seconds": 7200, "material": 160 }
+    ]
+  },
+  "character_upgrade": {
+    "base_material_cost": 10,
+    "cost_growth": 1.5,
+    "max_level": 10
+  },
+  "debug": {
+    "speed_multiplier": 50.0
+  },
+  "autosave_interval_seconds": 30
+}
