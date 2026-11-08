@@ -10,6 +10,14 @@ var _info_label: Label
 var _bar: ProgressBar
 var _button: Button
 var _avatar: Panel
+var _avatar_char := ""
+
+
+func _set_avatar(char_id: String, color: Color) -> void:
+	if _avatar_char == char_id:
+		return
+	_avatar_char = char_id
+	_avatar.add_theme_stylebox_override("panel", _make_style(color))
 
 
 func setup(slot_index: int) -> void:
@@ -20,6 +28,7 @@ func setup(slot_index: int) -> void:
 	var root := UIKit.hbox(24)
 	add_child(root)
 	_avatar = UIKit.swatch(Color(0.2, 0.26, 0.46), 110)
+	_avatar_char = ""
 	root.add_child(_avatar)
 
 	var info := UIKit.vbox(8)
@@ -42,7 +51,7 @@ func setup(slot_index: int) -> void:
 func refresh() -> void:
 	var d: Dictionary = GameState.get_dispatch(slot)
 	if d.is_empty():
-		_avatar.add_theme_stylebox_override("panel", _make_style(Color(0.2, 0.26, 0.46)))
+		_set_avatar("", Color(0.2, 0.26, 0.46))
 		_title_label.text = "派遣槽位 %d · 空闲" % (slot + 1)
 		var idle: Array = GameState.idle_characters()
 		_info_label.text = "选择一名空闲角色执行任务，获得素材。" if not idle.is_empty() else "没有空闲角色可派遣。"
@@ -54,7 +63,7 @@ func refresh() -> void:
 
 	var def: Dictionary = GameData.get_character(d.get("char_id", ""))
 	var duration: Dictionary = GameData.get_duration(d.get("duration_id", ""))
-	_avatar.add_theme_stylebox_override("panel", _make_style(UIKit.color_from_hex(def.get("color", "#888"))))
+	_set_avatar(String(d.get("char_id", "")), UIKit.color_from_hex(def.get("color", "#888")))
 	_title_label.text = "%s · %s" % [def.get("name", "?"), duration.get("name", "")]
 	_bar.visible = true
 	var total := float(d.get("total", 1.0))
