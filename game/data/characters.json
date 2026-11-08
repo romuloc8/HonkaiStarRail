@@ -1,0 +1,34 @@
+[
+  {
+    "id": "march7",
+    "name": "三月七",
+    "title": "星穹列车的开心果",
+    "color": "#7fc8f8",
+    "recruit_cost": 100,
+    "passive": { "type": "travel_speed", "value": 0.15, "per_level": 0.05, "desc": "航行速度" }
+  },
+  {
+    "id": "danheng",
+    "name": "丹恒",
+    "title": "列车的档案管理员",
+    "color": "#4fd1a5",
+    "recruit_cost": 150,
+    "passive": { "type": "jade_production", "value": 0.15, "per_level": 0.05, "desc": "星琼产出" }
+  },
+  {
+    "id": "himeko",
+    "name": "姬子",
+    "title": "星穹列车的领航员",
+    "color": "#ef5b5b",
+    "recruit_cost": 400,
+    "passive": { "type": "fuel_production", "value": 0.15, "per_level": 0.05, "desc": "燃料产出" }
+  },
+  {
+    "id": "welt",
+    "name": "瓦尔特",
+    "title": "列车的理论家",
+    "color": "#8c7ae6",
+    "recruit_cost": 1500,
+    "passive": { "type": "offline_cap_seconds", "value": 7200, "per_level": 600, "desc": "离线收益上限" }
+  }
+]

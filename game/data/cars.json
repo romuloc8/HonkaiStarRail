@@ -1,0 +1,36 @@
+[
+  {
+    "id": "power",
+    "name": "动力车厢",
+    "desc": "燃料产出 +10%/级",
+    "color": "#e07a3f",
+    "base_cost": 50,
+    "cost_growth": 1.15,
+    "effects": [
+      { "type": "fuel_production", "per_level": 0.10 }
+    ]
+  },
+  {
+    "id": "passenger",
+    "name": "客车厢",
+    "desc": "星琼产出 +10%/级",
+    "color": "#5b8def",
+    "base_cost": 40,
+    "cost_growth": 1.15,
+    "effects": [
+      { "type": "jade_production", "per_level": 0.10 }
+    ]
+  },
+  {
+    "id": "cargo",
+    "name": "货运车厢",
+    "desc": "派遣收益 +10%/级，离线上限 +30 分钟/级",
+    "color": "#7fd68a",
+    "base_cost": 80,
+    "cost_growth": 1.15,
+    "effects": [
+      { "type": "dispatch_yield", "per_level": 0.10 },
+      { "type": "offline_cap_seconds", "per_level": 1800 }
+    ]
+  }
+]
