@@ -45,8 +45,24 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.randomize()
+	if _is_test_run():
+		# GUT 命令行跑测试时不读写真实存档，由测试自行构造状态。
+		auto_boot = false
+		set_process(false)
 	if auto_boot:
 		boot()
+
+
+func _exit_tree() -> void:
+	if auto_boot:
+		save()
+
+
+static func _is_test_run() -> bool:
+	for arg in OS.get_cmdline_args():
+		if arg.begins_with("-g") or arg.contains("addons/gut/"):
+			return true
+	return false
 
 
 func _notification(what: int) -> void:
